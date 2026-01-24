@@ -1,0 +1,95 @@
+{
+  "phase": 5,
+  "name": "Iframe Toolbar",
+  "tasks": [
+    {
+      "category": "functional",
+      "description": "Implement hover detection on iframe-panel",
+      "steps": [
+        "Add mouseenter event listener to iframe-panel",
+        "Add mouseleave event listener to iframe-panel",
+        "Track hover state in component property",
+        "Update component render on hover change",
+        "Handle pointer events over iframe element",
+        "Verify hover state toggles on mouse enter/leave"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Create toolbar overlay UI",
+      "steps": [
+        "Add toolbar container div to iframe-panel template",
+        "Position toolbar at top of panel (absolute)",
+        "Style with semi-transparent dark background",
+        "Show toolbar only when hover state is true",
+        "Add smooth fade-in transition",
+        "Verify toolbar appears on hover"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Add toolbar action icons",
+      "steps": [
+        "Add close (X) icon button",
+        "Add edit (pencil) icon button",
+        "Add refresh (circular arrow) icon button",
+        "Add fullscreen (expand) icon button",
+        "Style icons with consistent size and spacing",
+        "Add hover effects to each icon"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement Edit URL functionality",
+      "steps": [
+        "Click edit icon shows URL input overlay",
+        "Pre-fill input with current URL",
+        "Press Enter submits new URL",
+        "Press Escape cancels edit",
+        "Click outside cancels edit",
+        "Verify iframe reloads with new URL"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement Refresh functionality",
+      "steps": [
+        "Click refresh icon reloads iframe content",
+        "Update iframe src to force reload",
+        "Add brief loading indicator",
+        "Handle iframe load complete event",
+        "Verify iframe content refreshes"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement Fullscreen mode",
+      "steps": [
+        "Click fullscreen icon expands panel",
+        "Panel covers entire viewport",
+        "Add close/exit fullscreen button",
+        "Press Escape exits fullscreen",
+        "Other panels hidden during fullscreen",
+        "Verify transition in and out of fullscreen"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Handle toolbar interactions with iframe",
+      "steps": [
+        "Toolbar clicks don't propagate to iframe",
+        "Toolbar remains interactive over iframe",
+        "Pointer events handled correctly",
+        "No accidental iframe navigation from toolbar",
+        "Verify all toolbar actions work reliably"
+      ],
+      "passes": false
+    }
+  ]
+}

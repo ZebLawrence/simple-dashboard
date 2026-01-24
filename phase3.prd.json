@@ -1,0 +1,84 @@
+{
+  "phase": 3,
+  "name": "Grid Resizing",
+  "tasks": [
+    {
+      "category": "functional",
+      "description": "Create grid-divider component for drag handles",
+      "steps": [
+        "Create src/components/grid-divider.ts",
+        "Define GridDivider class with orientation property (horizontal/vertical)",
+        "Style divider as thin bar between grid cells",
+        "Add cursor style to indicate draggable",
+        "Position divider at grid cell boundaries",
+        "Verify dividers appear between iframe panels"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement mousedown drag start on divider",
+      "steps": [
+        "Add mousedown event listener to grid-divider",
+        "Capture initial mouse position on drag start",
+        "Store initial grid ratios at drag start",
+        "Dispatch custom event to parent grid",
+        "Add visual feedback (highlight) on drag start",
+        "Verify drag start triggers correctly"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement mousemove drag tracking",
+      "steps": [
+        "Add mousemove listener to document during drag",
+        "Calculate delta from initial position",
+        "Convert pixel delta to ratio adjustment",
+        "Emit ratio-change event with new values",
+        "Ensure smooth tracking without jitter",
+        "Verify divider position updates during drag"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Update CSS Grid template on drag",
+      "steps": [
+        "Listen for ratio-change events in iframe-grid",
+        "Update columnRatios or rowRatios array",
+        "Recalculate grid-template-columns CSS value",
+        "Recalculate grid-template-rows CSS value",
+        "Apply new template to grid container",
+        "Verify iframe panels resize in real-time"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement mouseup drag end",
+      "steps": [
+        "Add mouseup listener to document",
+        "Remove mousemove listener on drag end",
+        "Finalize ratio values",
+        "Remove visual drag feedback",
+        "Dispatch drag-complete event",
+        "Verify drag ends cleanly and ratios persist"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Handle edge cases for grid resizing",
+      "steps": [
+        "Enforce minimum panel size (e.g., 100px)",
+        "Prevent ratios from going negative",
+        "Handle mouse leaving viewport during drag",
+        "Ensure ratios always sum to total correctly",
+        "Test with various grid configurations",
+        "Verify no panels can be resized to invisible"
+      ],
+      "passes": false
+    }
+  ]
+}

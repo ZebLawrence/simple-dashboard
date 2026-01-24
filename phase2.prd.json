@@ -1,0 +1,70 @@
+{
+  "phase": 2,
+  "name": "Core Components",
+  "tasks": [
+    {
+      "category": "functional",
+      "description": "Create dashboard-app root component",
+      "steps": [
+        "Create src/components/dashboard-app.ts",
+        "Define DashboardApp class extending LitElement",
+        "Add basic dark mode CSS styles",
+        "Register custom element as 'dashboard-app'",
+        "Add component to index.html",
+        "Verify component renders in browser"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Create iframe-panel component with basic iframe display",
+      "steps": [
+        "Create src/components/iframe-panel.ts",
+        "Define IframePanel class with url property",
+        "Render iframe element with src bound to url",
+        "Style iframe to fill container",
+        "Add sandbox and allow attributes for security",
+        "Verify iframe loads external URL correctly"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Create iframe-grid component with CSS Grid layout",
+      "steps": [
+        "Create src/components/iframe-grid.ts",
+        "Define IframeGrid class with iframes array property",
+        "Implement CSS Grid container styles",
+        "Render iframe-panel for each item in array",
+        "Set grid-template-columns and grid-template-rows",
+        "Verify multiple iframes display in grid layout"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement static grid rendering with test data",
+      "steps": [
+        "Add sample iframe data to dashboard-app",
+        "Pass data to iframe-grid component",
+        "Render 2x2 grid with test URLs",
+        "Verify all four iframes are visible",
+        "Check that grid fills viewport correctly"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Define TypeScript interfaces for data model",
+      "steps": [
+        "Create src/types/index.ts",
+        "Define IframeConfig interface with id, url, position",
+        "Define GridConfig interface with columns, rows, ratios",
+        "Define WorkspaceState interface",
+        "Export all interfaces",
+        "Use interfaces in components"
+      ],
+      "passes": false
+    }
+  ]
+}

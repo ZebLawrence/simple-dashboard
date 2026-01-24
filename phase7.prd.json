@@ -1,0 +1,146 @@
+{
+  "phase": 7,
+  "name": "Polish and Testing",
+  "tasks": [
+    {
+      "category": "visual",
+      "description": "Apply dark mode styling throughout",
+      "steps": [
+        "Create src/styles/theme.ts with CSS variables",
+        "Define color palette (background, surface, text, accent)",
+        "Apply dark background to body and app shell",
+        "Style modal with dark theme colors",
+        "Style toolbar with consistent dark palette",
+        "Verify consistent dark appearance across all components"
+      ],
+      "passes": false
+    },
+    {
+      "category": "visual",
+      "description": "Add transitions and hover effects",
+      "steps": [
+        "Add fade transition to toolbar on hover",
+        "Add scale effect to add-iframe-button on hover",
+        "Add smooth resize animation during grid drag",
+        "Add modal fade-in/fade-out animation",
+        "Add fullscreen transition animation",
+        "Verify animations feel smooth and responsive"
+      ],
+      "passes": false
+    },
+    {
+      "category": "visual",
+      "description": "Style grid dividers and borders",
+      "steps": [
+        "Add subtle borders between iframe panels",
+        "Style dividers with visible hover state",
+        "Add resize cursor on divider hover",
+        "Ensure dividers are easy to grab",
+        "Match divider colors to dark theme",
+        "Verify clean visual separation between panels"
+      ],
+      "passes": false
+    },
+    {
+      "category": "testing",
+      "description": "Write open-wc unit tests for iframe-panel",
+      "steps": [
+        "Test component renders with url property",
+        "Test toolbar shows on hover",
+        "Test close button dispatches event",
+        "Test edit mode activates correctly",
+        "Test refresh triggers iframe reload",
+        "Run tests and verify all pass"
+      ],
+      "passes": false
+    },
+    {
+      "category": "testing",
+      "description": "Write open-wc unit tests for iframe-grid",
+      "steps": [
+        "Test grid renders correct number of panels",
+        "Test grid applies column/row ratios",
+        "Test add-iframe updates grid",
+        "Test remove-iframe updates grid",
+        "Test resize events update ratios",
+        "Run tests and verify all pass"
+      ],
+      "passes": false
+    },
+    {
+      "category": "testing",
+      "description": "Write open-wc unit tests for storage-service",
+      "steps": [
+        "Test save writes to localStorage",
+        "Test load retrieves from localStorage",
+        "Test handles missing data gracefully",
+        "Test handles corrupted data gracefully",
+        "Mock localStorage for isolation",
+        "Run tests and verify all pass"
+      ],
+      "passes": false
+    },
+    {
+      "category": "testing",
+      "description": "Write Playwright e2e test for adding iframe",
+      "steps": [
+        "Navigate to application URL",
+        "Click floating add button",
+        "Verify modal appears",
+        "Enter URL in input field",
+        "Click Add button",
+        "Verify new iframe visible in grid"
+      ],
+      "passes": false
+    },
+    {
+      "category": "testing",
+      "description": "Write Playwright e2e test for removing iframe",
+      "steps": [
+        "Start with existing iframe in grid",
+        "Hover over iframe panel",
+        "Click close button in toolbar",
+        "Verify iframe removed from grid",
+        "Verify grid layout adjusts"
+      ],
+      "passes": false
+    },
+    {
+      "category": "testing",
+      "description": "Write Playwright e2e test for grid resizing",
+      "steps": [
+        "Start with 2x2 grid of iframes",
+        "Locate vertical divider between panels",
+        "Drag divider to new position",
+        "Verify panel widths changed",
+        "Verify ratios persisted after reload"
+      ],
+      "passes": false
+    },
+    {
+      "category": "testing",
+      "description": "Write Playwright e2e test for persistence",
+      "steps": [
+        "Add multiple iframes",
+        "Resize grid layout",
+        "Reload the page",
+        "Verify all iframes restored",
+        "Verify grid ratios restored",
+        "Verify URLs match original"
+      ],
+      "passes": false
+    },
+    {
+      "category": "testing",
+      "description": "Write Playwright e2e test for fullscreen mode",
+      "steps": [
+        "Start with iframe in grid",
+        "Hover and click fullscreen button",
+        "Verify iframe fills viewport",
+        "Press Escape key",
+        "Verify normal grid view restored"
+      ],
+      "passes": false
+    }
+  ]
+}

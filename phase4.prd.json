@@ -1,0 +1,97 @@
+{
+  "phase": 4,
+  "name": "Add/Remove Iframes",
+  "tasks": [
+    {
+      "category": "functional",
+      "description": "Create add-iframe-button floating action button",
+      "steps": [
+        "Create src/components/add-iframe-button.ts",
+        "Define AddIframeButton class extending LitElement",
+        "Style as circular button with + icon",
+        "Position fixed at bottom-right corner",
+        "Add hover and active state styles",
+        "Verify button appears on page and is clickable"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Create add-iframe-modal dialog component",
+      "steps": [
+        "Create src/components/add-iframe-modal.ts",
+        "Define AddIframeModal class with open property",
+        "Create modal overlay with dark backdrop",
+        "Add URL input field with label",
+        "Add Cancel and Add buttons",
+        "Style modal centered on screen with dark theme"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement modal open/close behavior",
+      "steps": [
+        "Click add-iframe-button opens modal",
+        "Click Cancel button closes modal",
+        "Click backdrop closes modal",
+        "Press Escape key closes modal",
+        "Focus URL input when modal opens",
+        "Verify modal visibility toggles correctly"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement add iframe submission",
+      "steps": [
+        "Click Add button with valid URL",
+        "Dispatch add-iframe custom event with URL",
+        "Close modal after successful add",
+        "Clear input field after add",
+        "Validate URL format before accepting",
+        "Show error state for invalid URL"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Handle new iframe in grid",
+      "steps": [
+        "Listen for add-iframe event in dashboard-app",
+        "Generate unique ID for new iframe",
+        "Calculate next available grid position",
+        "Add new IframeConfig to state",
+        "Expand grid if necessary (add row/column)",
+        "Verify new iframe appears in grid"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement remove iframe from hover toolbar",
+      "steps": [
+        "Add close button to iframe-panel toolbar",
+        "Click close dispatches remove-iframe event",
+        "Event includes iframe ID",
+        "Listen for event in dashboard-app",
+        "Remove iframe from state array",
+        "Verify iframe disappears from grid"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Handle grid reflow after remove",
+      "steps": [
+        "Remove iframe from middle of grid",
+        "Remaining iframes reposition correctly",
+        "Grid shrinks if row/column now empty",
+        "Ratios adjust proportionally",
+        "No gaps left in grid layout",
+        "Verify grid displays correctly after removal"
+      ],
+      "passes": false
+    }
+  ]
+}

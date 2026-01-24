@@ -1,0 +1,84 @@
+{
+  "phase": 6,
+  "name": "Persistence",
+  "tasks": [
+    {
+      "category": "functional",
+      "description": "Create storage-service for localStorage operations",
+      "steps": [
+        "Create src/services/storage-service.ts",
+        "Define StorageService class",
+        "Add save method accepting WorkspaceState",
+        "Add load method returning WorkspaceState or null",
+        "Use consistent localStorage key",
+        "Handle JSON stringify/parse"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement save workspace state",
+      "steps": [
+        "Serialize iframes array to JSON",
+        "Serialize grid config to JSON",
+        "Combine into WorkspaceState object",
+        "Write to localStorage",
+        "Handle storage quota errors gracefully",
+        "Verify data persists in browser storage"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement auto-save on changes",
+      "steps": [
+        "Call save after adding iframe",
+        "Call save after removing iframe",
+        "Call save after editing iframe URL",
+        "Call save after resizing grid",
+        "Debounce rapid changes (e.g., during drag)",
+        "Verify state saved after each action"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Implement load workspace state",
+      "steps": [
+        "Read from localStorage on app init",
+        "Parse JSON to WorkspaceState",
+        "Validate loaded data structure",
+        "Apply loaded iframes to grid",
+        "Apply loaded grid ratios",
+        "Verify previous session restored"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Handle empty/first-load state",
+      "steps": [
+        "Check if localStorage key exists",
+        "Return null or default state if missing",
+        "Initialize with empty iframes array",
+        "Initialize with default 1x1 grid",
+        "Show helpful empty state message",
+        "Verify clean first-time experience"
+      ],
+      "passes": false
+    },
+    {
+      "category": "functional",
+      "description": "Handle corrupted storage data",
+      "steps": [
+        "Try/catch JSON parse errors",
+        "Validate expected properties exist",
+        "Validate data types are correct",
+        "Fall back to default state on error",
+        "Optionally clear corrupted data",
+        "Log error for debugging"
+      ],
+      "passes": false
+    }
+  ]
+}

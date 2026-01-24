@@ -1,0 +1,74 @@
+{
+  "phase": 1,
+  "name": "Project Setup",
+  "tasks": [
+    {
+      "category": "setup",
+      "description": "Initialize npm project with TypeScript configuration",
+      "steps": [
+        "Run npm init to create package.json",
+        "Install TypeScript as dev dependency",
+        "Create tsconfig.json with appropriate settings for Lit",
+        "Verify TypeScript compilation works with a test file"
+      ],
+      "passes": false
+    },
+    {
+      "category": "setup",
+      "description": "Install and configure Lit web components",
+      "steps": [
+        "Install lit package",
+        "Create a minimal Lit component test file",
+        "Verify component compiles without errors",
+        "Check that Lit decorators work correctly"
+      ],
+      "passes": false
+    },
+    {
+      "category": "setup",
+      "description": "Configure Vite as build tool",
+      "steps": [
+        "Install vite and required plugins",
+        "Create vite.config.ts with TypeScript and Lit support",
+        "Create index.html entry point",
+        "Run vite dev server and verify hot reload works"
+      ],
+      "passes": false
+    },
+    {
+      "category": "setup",
+      "description": "Set up open-wc testing framework",
+      "steps": [
+        "Install @open-wc/testing and related packages",
+        "Install @web/test-runner",
+        "Create web-test-runner.config.js",
+        "Create a sample test file and verify tests run"
+      ],
+      "passes": false
+    },
+    {
+      "category": "setup",
+      "description": "Set up Playwright for e2e testing",
+      "steps": [
+        "Install @playwright/test",
+        "Run playwright install to get browsers",
+        "Create playwright.config.ts",
+        "Create a sample e2e test and verify it runs"
+      ],
+      "passes": false
+    },
+    {
+      "category": "setup",
+      "description": "Create project folder structure",
+      "steps": [
+        "Create src/components directory",
+        "Create src/services directory",
+        "Create src/types directory",
+        "Create src/styles directory",
+        "Create src/index.ts entry point",
+        "Verify all directories are in place"
+      ],
+      "passes": false
+    }
+  ]
+}

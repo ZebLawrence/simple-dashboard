@@ -64,27 +64,41 @@ export class IframePanel extends LitElement {
       pointer-events: auto;
     }
 
-    .close-button {
+    .toolbar-button {
       width: 24px;
       height: 24px;
       border: none;
       border-radius: 4px;
-      background-color: rgba(233, 69, 96, 0.9);
+      background-color: rgba(255, 255, 255, 0.15);
       color: white;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 14px;
       line-height: 1;
       padding: 0;
+      transition: background-color 0.15s ease;
     }
 
-    .close-button:hover {
+    .toolbar-button:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .toolbar-button:active {
+      background-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .toolbar-button.close-button {
+      background-color: rgba(233, 69, 96, 0.9);
+      font-size: 16px;
+    }
+
+    .toolbar-button.close-button:hover {
       background-color: #e94560;
     }
 
-    .close-button:active {
+    .toolbar-button.close-button:active {
       background-color: #c73e54;
     }
 
@@ -126,7 +140,10 @@ export class IframePanel extends LitElement {
         @mouseleave=${this._handleMouseLeave}
       >
         <div class="toolbar ${this._isHovered ? 'visible' : ''}">
-          <button class="close-button" @click=${this._handleClose} title="Remove iframe">×</button>
+          <button class="toolbar-button edit-button" title="Edit URL">✎</button>
+          <button class="toolbar-button refresh-button" title="Refresh">↻</button>
+          <button class="toolbar-button fullscreen-button" title="Fullscreen">⛶</button>
+          <button class="toolbar-button close-button" @click=${this._handleClose} title="Remove iframe">×</button>
         </div>
         <div class="hover-overlay"></div>
         <iframe

@@ -40,3 +40,34 @@ Added 2 tests to `src/components/iframe-panel.test.ts`:
 - Test for toolbar spanning full width at top of panel (position absolute, top/left/right: 0)
 
 All 169 tests passing.
+
+### Phase 5 Task 3: Add toolbar action icons - COMPLETE
+
+Updated `src/components/iframe-panel.ts`:
+- Added `.toolbar-button` base class for consistent button styling across all toolbar icons
+- Added edit button (✎) with class `.edit-button` and title "Edit URL"
+- Added refresh button (↻) with class `.refresh-button` and title "Refresh"
+- Added fullscreen button (⛶) with class `.fullscreen-button` and title "Fullscreen"
+- Close button now uses shared `.toolbar-button` class with `.close-button` modifier
+- All buttons have consistent 24x24px size with 4px border radius
+- Base buttons use semi-transparent white background (rgba(255,255,255,0.15))
+- Close button retains its red background (rgba(233,69,96,0.9))
+- Added smooth hover transition (0.15s ease) on all buttons
+- Hover brightens buttons (rgba(255,255,255,0.3) for base, solid red for close)
+- Buttons ordered: edit, refresh, fullscreen, close (from left to right)
+
+Added 12 tests to `src/components/iframe-panel.test.ts`:
+- Test for edit button existence
+- Test for edit button pencil icon (✎)
+- Test for edit button title
+- Test for refresh button existence
+- Test for refresh button circular arrow icon (↻)
+- Test for refresh button title
+- Test for fullscreen button existence
+- Test for fullscreen button expand icon (⛶)
+- Test for fullscreen button title
+- Test for all 4 buttons having toolbar-button class
+- Test for correct button order in toolbar
+- Test for close button still having × symbol
+
+All 181 tests passing.

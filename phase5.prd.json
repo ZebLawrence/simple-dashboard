@@ -39,7 +39,7 @@
         "Style icons with consistent size and spacing",
         "Add hover effects to each icon"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

@@ -239,4 +239,93 @@ describe('IframePanel', () => {
       expect(toolbar.classList.contains('visible')).to.be.false;
     });
   });
+
+  describe('toolbar action icons', () => {
+    it('renders an edit button in the toolbar', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const editButton = el.shadowRoot!.querySelector('.edit-button');
+      expect(editButton).to.exist;
+    });
+
+    it('edit button has pencil icon', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const editButton = el.shadowRoot!.querySelector('.edit-button')!;
+      expect(editButton.textContent).to.equal('✎');
+    });
+
+    it('edit button has Edit URL title', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const editButton = el.shadowRoot!.querySelector('.edit-button')!;
+      expect(editButton.getAttribute('title')).to.equal('Edit URL');
+    });
+
+    it('renders a refresh button in the toolbar', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const refreshButton = el.shadowRoot!.querySelector('.refresh-button');
+      expect(refreshButton).to.exist;
+    });
+
+    it('refresh button has circular arrow icon', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const refreshButton = el.shadowRoot!.querySelector('.refresh-button')!;
+      expect(refreshButton.textContent).to.equal('↻');
+    });
+
+    it('refresh button has Refresh title', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const refreshButton = el.shadowRoot!.querySelector('.refresh-button')!;
+      expect(refreshButton.getAttribute('title')).to.equal('Refresh');
+    });
+
+    it('renders a fullscreen button in the toolbar', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button');
+      expect(fullscreenButton).to.exist;
+    });
+
+    it('fullscreen button has expand icon', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button')!;
+      expect(fullscreenButton.textContent).to.equal('⛶');
+    });
+
+    it('fullscreen button has Fullscreen title', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button')!;
+      expect(fullscreenButton.getAttribute('title')).to.equal('Fullscreen');
+    });
+
+    it('all toolbar buttons have consistent toolbar-button class', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const buttons = el.shadowRoot!.querySelectorAll('.toolbar-button');
+      expect(buttons.length).to.equal(4);
+    });
+
+    it('toolbar buttons are in correct order: edit, refresh, fullscreen, close', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const buttons = el.shadowRoot!.querySelectorAll('.toolbar-button');
+      expect(buttons[0].classList.contains('edit-button')).to.be.true;
+      expect(buttons[1].classList.contains('refresh-button')).to.be.true;
+      expect(buttons[2].classList.contains('fullscreen-button')).to.be.true;
+      expect(buttons[3].classList.contains('close-button')).to.be.true;
+    });
+
+    it('close button still has × symbol after adding other buttons', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const closeButton = el.shadowRoot!.querySelector('.close-button')!;
+      expect(closeButton.textContent).to.equal('×');
+    });
+  });
 });

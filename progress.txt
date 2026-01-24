@@ -113,3 +113,44 @@ Completed: 2026-01-24
 - The `url-changed` event was already being dispatched by `iframe-panel` component
 - The `grid-drag-complete` event was already being dispatched by `iframe-grid` component
 - Next tasks: "Handle empty/first-load state" or "Handle corrupted storage data"
+
+## Phase 6, Task 5: Handle empty/first-load state
+
+Completed: 2026-01-24
+
+### What was done:
+- Changed DashboardApp default state from 4 hardcoded iframes to empty iframes array
+- Changed DashboardApp default grid from 2x2 to 1x1
+- Added empty state UI in iframe-grid component with:
+  - `.empty-state` container with centered layout
+  - `.empty-state-icon` showing "+" symbol
+  - `.empty-state-title` showing "No panels yet"
+  - `.empty-state-description` with helpful text about clicking the + button
+- Empty state is shown when `iframes.length === 0`
+- Empty state is hidden when iframes exist, showing the normal grid instead
+- Updated many existing tests to use pre-populated localStorage state since defaults changed
+
+### Tests:
+- Added 8 new tests for empty/first-load state in dashboard-app.test.ts covering:
+  - Starts with empty iframes array when localStorage is empty
+  - Starts with default 1x1 grid when localStorage is empty
+  - Shows empty state message when no iframes exist
+  - Displays "No panels yet" title in empty state
+  - Displays helpful description about adding panels
+  - Hides empty state after adding first iframe
+  - Returns to empty state when all iframes are removed
+  - Provides clean first-time experience
+- Added 5 new tests for empty state in iframe-grid.test.ts covering:
+  - Shows empty state message when iframes array is empty
+  - Displays "No panels yet" title
+  - Displays helpful description
+  - Does not show grid container when empty
+  - Does not show empty state when iframes exist
+- Updated ~50 existing tests to use pre-populated localStorage since default state changed
+- All 287 tests pass
+
+### Notes for next person:
+- Empty state provides clean first-time user experience
+- User can add their first panel via the + button in bottom right
+- State is persisted via auto-save, so returning users see their previous session
+- Next task: "Handle corrupted storage data" (already partially implemented in StorageService)

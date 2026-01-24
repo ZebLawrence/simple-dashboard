@@ -65,7 +65,7 @@
         "Show helpful empty state message",
         "Verify clean first-time experience"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

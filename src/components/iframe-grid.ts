@@ -56,6 +56,38 @@ export class IframeGrid extends LitElement {
     grid-divider[orientation='horizontal'] {
       width: 100%;
     }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #9ca3af;
+      text-align: center;
+      padding: 32px;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.6;
+    }
+
+    .empty-state-title {
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: #e0e0e0;
+      margin: 0 0 8px 0;
+    }
+
+    .empty-state-description {
+      font-size: 0.875rem;
+      color: #9ca3af;
+      margin: 0;
+      max-width: 300px;
+      line-height: 1.5;
+    }
   `;
 
   private getGridTemplateColumns(): string {
@@ -101,6 +133,19 @@ export class IframeGrid extends LitElement {
   }
 
   override render() {
+    // Show empty state when there are no iframes
+    if (this.iframes.length === 0) {
+      return html`
+        <div class="empty-state">
+          <div class="empty-state-icon">+</div>
+          <h2 class="empty-state-title">No panels yet</h2>
+          <p class="empty-state-description">
+            Click the + button in the bottom right corner to add your first iframe panel.
+          </p>
+        </div>
+      `;
+    }
+
     const gridStyle = `
       grid-template-columns: ${this.getGridTemplateColumns()};
       grid-template-rows: ${this.getGridTemplateRows()};

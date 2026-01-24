@@ -133,10 +133,24 @@ describe('DashboardApp', () => {
   });
 
   describe('grid expansion', () => {
+    const defaultSavedState = {
+      iframes: [
+        { id: 'iframe-1', url: 'https://example.com', position: { row: 0, col: 0 } },
+        { id: 'iframe-2', url: 'https://example.org', position: { row: 0, col: 1 } },
+        { id: 'iframe-3', url: 'https://example.net', position: { row: 1, col: 0 } },
+        { id: 'iframe-4', url: 'https://example.edu', position: { row: 1, col: 1 } },
+      ],
+      grid: { columns: 2, rows: 2, columnRatios: [1, 1], rowRatios: [1, 1] },
+    };
+
+    beforeEach(() => {
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(defaultSavedState));
+    });
+
     it('expands grid when all cells are occupied', async () => {
       const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
 
-      // Default grid is 2x2 with 4 iframes - all cells occupied
+      // Grid is 2x2 with 4 iframes - all cells occupied
       const initialColumns = (el as any).grid.columns;
       const initialRows = (el as any).grid.rows;
 
@@ -271,6 +285,20 @@ describe('DashboardApp', () => {
   });
 
   describe('remove iframe from hover toolbar', () => {
+    const defaultSavedState = {
+      iframes: [
+        { id: 'iframe-1', url: 'https://example.com', position: { row: 0, col: 0 } },
+        { id: 'iframe-2', url: 'https://example.org', position: { row: 0, col: 1 } },
+        { id: 'iframe-3', url: 'https://example.net', position: { row: 1, col: 0 } },
+        { id: 'iframe-4', url: 'https://example.edu', position: { row: 1, col: 1 } },
+      ],
+      grid: { columns: 2, rows: 2, columnRatios: [1, 1], rowRatios: [1, 1] },
+    };
+
+    beforeEach(() => {
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(defaultSavedState));
+    });
+
     it('listens for remove-iframe event from iframe-grid', async () => {
       const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
 
@@ -371,6 +399,20 @@ describe('DashboardApp', () => {
   });
 
   describe('grid reflow after remove', () => {
+    const defaultSavedState = {
+      iframes: [
+        { id: 'iframe-1', url: 'https://example.com', position: { row: 0, col: 0 } },
+        { id: 'iframe-2', url: 'https://example.org', position: { row: 0, col: 1 } },
+        { id: 'iframe-3', url: 'https://example.net', position: { row: 1, col: 0 } },
+        { id: 'iframe-4', url: 'https://example.edu', position: { row: 1, col: 1 } },
+      ],
+      grid: { columns: 2, rows: 2, columnRatios: [1, 1], rowRatios: [1, 1] },
+    };
+
+    beforeEach(() => {
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(defaultSavedState));
+    });
+
     it('repositions remaining iframes to fill gaps', async () => {
       const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
 
@@ -595,14 +637,26 @@ describe('DashboardApp', () => {
 
   describe('save workspace state', () => {
     let testStorage: StorageService;
+    const defaultSavedState = {
+      iframes: [
+        { id: 'iframe-1', url: 'https://example.com', position: { row: 0, col: 0 } },
+        { id: 'iframe-2', url: 'https://example.org', position: { row: 0, col: 1 } },
+        { id: 'iframe-3', url: 'https://example.net', position: { row: 1, col: 0 } },
+        { id: 'iframe-4', url: 'https://example.edu', position: { row: 1, col: 1 } },
+      ],
+      grid: { columns: 2, rows: 2, columnRatios: [1, 1], rowRatios: [1, 1] },
+    };
 
     beforeEach(() => {
       testStorage = new StorageService(TEST_STORAGE_KEY);
       testStorage.clear();
+      // Pre-populate with default state for most tests
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(defaultSavedState));
     });
 
     afterEach(() => {
       testStorage.clear();
+      localStorage.removeItem('dashboard-workspace-state');
     });
 
     it('serializes iframes array to JSON', async () => {
@@ -781,8 +835,18 @@ describe('DashboardApp', () => {
   });
 
   describe('auto-save on changes', () => {
+    const defaultSavedState = {
+      iframes: [
+        { id: 'iframe-1', url: 'https://example.com', position: { row: 0, col: 0 } },
+        { id: 'iframe-2', url: 'https://example.org', position: { row: 0, col: 1 } },
+        { id: 'iframe-3', url: 'https://example.net', position: { row: 1, col: 0 } },
+        { id: 'iframe-4', url: 'https://example.edu', position: { row: 1, col: 1 } },
+      ],
+      grid: { columns: 2, rows: 2, columnRatios: [1, 1], rowRatios: [1, 1] },
+    };
+
     beforeEach(() => {
-      localStorage.removeItem('dashboard-workspace-state');
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(defaultSavedState));
     });
 
     afterEach(() => {
@@ -1139,15 +1203,15 @@ describe('DashboardApp', () => {
       expect(result).to.be.false;
     });
 
-    it('uses default state when localStorage is empty', async () => {
+    it('uses default empty state when localStorage is empty', async () => {
       localStorage.removeItem('dashboard-workspace-state');
 
       const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
 
-      // Should have default 4 iframes and 2x2 grid
-      expect((el as any).iframes.length).to.equal(4);
-      expect((el as any).grid.columns).to.equal(2);
-      expect((el as any).grid.rows).to.equal(2);
+      // Should have empty state - 0 iframes and 1x1 grid
+      expect((el as any).iframes.length).to.equal(0);
+      expect((el as any).grid.columns).to.equal(1);
+      expect((el as any).grid.rows).to.equal(1);
     });
 
     it('renders loaded iframes in the grid component', async () => {
@@ -1164,6 +1228,148 @@ describe('DashboardApp', () => {
 
       const gridComponent = el.shadowRoot!.querySelector('iframe-grid') as any;
       expect(gridComponent.iframes[0].url).to.equal('https://render1.com');
+    });
+  });
+
+  describe('empty/first-load state', () => {
+    beforeEach(() => {
+      localStorage.removeItem('dashboard-workspace-state');
+    });
+
+    afterEach(() => {
+      localStorage.removeItem('dashboard-workspace-state');
+    });
+
+    it('starts with empty iframes array when localStorage is empty', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      expect((el as any).iframes.length).to.equal(0);
+    });
+
+    it('starts with default 1x1 grid when localStorage is empty', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      expect((el as any).grid.columns).to.equal(1);
+      expect((el as any).grid.rows).to.equal(1);
+      expect((el as any).grid.columnRatios).to.deep.equal([1]);
+      expect((el as any).grid.rowRatios).to.deep.equal([1]);
+    });
+
+    it('shows empty state message when no iframes exist', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+      await el.updateComplete;
+
+      const gridComponent = el.shadowRoot!.querySelector('iframe-grid')!;
+      const emptyState = gridComponent.shadowRoot!.querySelector('.empty-state');
+      expect(emptyState).to.exist;
+    });
+
+    it('displays "No panels yet" title in empty state', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+      await el.updateComplete;
+
+      const gridComponent = el.shadowRoot!.querySelector('iframe-grid')!;
+      const title = gridComponent.shadowRoot!.querySelector('.empty-state-title');
+      expect(title).to.exist;
+      expect(title!.textContent).to.equal('No panels yet');
+    });
+
+    it('displays helpful description about adding panels', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+      await el.updateComplete;
+
+      const gridComponent = el.shadowRoot!.querySelector('iframe-grid')!;
+      const description = gridComponent.shadowRoot!.querySelector('.empty-state-description');
+      expect(description).to.exist;
+      expect(description!.textContent).to.include('+ button');
+    });
+
+    it('hides empty state after adding first iframe', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+      await el.updateComplete;
+
+      // Verify empty state is shown initially
+      let gridComponent = el.shadowRoot!.querySelector('iframe-grid')!;
+      let emptyState = gridComponent.shadowRoot!.querySelector('.empty-state');
+      expect(emptyState).to.exist;
+
+      // Add an iframe
+      const modal = el.shadowRoot!.querySelector('add-iframe-modal')!;
+      modal.dispatchEvent(new CustomEvent('add-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { url: 'https://example.com' },
+      }));
+      await el.updateComplete;
+
+      // Wait for grid component to update
+      gridComponent = el.shadowRoot!.querySelector('iframe-grid')!;
+      await (gridComponent as any).updateComplete;
+
+      // Empty state should be hidden
+      emptyState = gridComponent.shadowRoot!.querySelector('.empty-state');
+      expect(emptyState).to.be.null;
+
+      // Grid container should be shown
+      const container = gridComponent.shadowRoot!.querySelector('.grid-container');
+      expect(container).to.exist;
+    });
+
+    it('returns to empty state when all iframes are removed', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Add an iframe first
+      const modal = el.shadowRoot!.querySelector('add-iframe-modal')!;
+      modal.dispatchEvent(new CustomEvent('add-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { url: 'https://example.com' },
+      }));
+      await el.updateComplete;
+
+      // Verify iframe was added
+      expect((el as any).iframes.length).to.equal(1);
+
+      // Remove the iframe
+      const iframeId = (el as any).iframes[0].id;
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeId },
+      }));
+      await el.updateComplete;
+
+      // Should be back to empty state
+      expect((el as any).iframes.length).to.equal(0);
+
+      // Wait for grid component to update
+      await (grid as any).updateComplete;
+
+      const emptyState = grid.shadowRoot!.querySelector('.empty-state');
+      expect(emptyState).to.exist;
+    });
+
+    it('provides clean first-time experience', async () => {
+      // Ensure localStorage is completely clear
+      localStorage.clear();
+
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+      await el.updateComplete;
+
+      // Verify clean state
+      expect((el as any).iframes.length).to.equal(0);
+      expect((el as any).grid.columns).to.equal(1);
+      expect((el as any).grid.rows).to.equal(1);
+
+      // Verify add button is available
+      const addButton = el.shadowRoot!.querySelector('add-iframe-button');
+      expect(addButton).to.exist;
+
+      // Verify empty state message is shown
+      const gridComponent = el.shadowRoot!.querySelector('iframe-grid')!;
+      const emptyState = gridComponent.shadowRoot!.querySelector('.empty-state');
+      expect(emptyState).to.exist;
     });
   });
 });

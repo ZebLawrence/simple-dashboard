@@ -20,15 +20,84 @@ describe('IframeGrid', () => {
     expect(el.iframes).to.deep.equal([]);
   });
 
-  it('contains a grid container element', async () => {
-    const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+  describe('empty state', () => {
+    it('shows empty state message when iframes array is empty', async () => {
+      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+
+      const emptyState = el.shadowRoot!.querySelector('.empty-state');
+      expect(emptyState).to.exist;
+    });
+
+    it('displays "No panels yet" title in empty state', async () => {
+      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+
+      const title = el.shadowRoot!.querySelector('.empty-state-title');
+      expect(title).to.exist;
+      expect(title!.textContent).to.equal('No panels yet');
+    });
+
+    it('displays helpful description in empty state', async () => {
+      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+
+      const description = el.shadowRoot!.querySelector('.empty-state-description');
+      expect(description).to.exist;
+      expect(description!.textContent).to.include('+ button');
+    });
+
+    it('does not show grid container when empty', async () => {
+      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+
+      const container = el.shadowRoot!.querySelector('.grid-container');
+      expect(container).to.be.null;
+    });
+
+    it('does not show empty state when iframes exist', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com', position: { row: 0, col: 0 } },
+      ];
+      const customGrid: GridConfig = {
+        columns: 1,
+        rows: 1,
+        columnRatios: [1],
+        rowRatios: [1],
+      };
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
+
+      const emptyState = el.shadowRoot!.querySelector('.empty-state');
+      expect(emptyState).to.be.null;
+
+      const container = el.shadowRoot!.querySelector('.grid-container');
+      expect(container).to.exist;
+    });
+  });
+
+  it('contains a grid container element when iframes exist', async () => {
+    const testIframes: IframeConfig[] = [
+      { id: '1', url: 'https://example.com', position: { row: 0, col: 0 } },
+    ];
+    const customGrid: GridConfig = {
+      columns: 1,
+      rows: 1,
+      columnRatios: [1],
+      rowRatios: [1],
+    };
+    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
     const container = el.shadowRoot!.querySelector('.grid-container');
     expect(container).to.exist;
   });
 
   it('renders grid container with CSS Grid display', async () => {
-    const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+    const testIframes: IframeConfig[] = [
+      { id: '1', url: 'https://example.com', position: { row: 0, col: 0 } },
+    ];
+    const customGrid: GridConfig = {
+      columns: 1,
+      rows: 1,
+      columnRatios: [1],
+      rowRatios: [1],
+    };
+    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
     const container = el.shadowRoot!.querySelector('.grid-container')!;
     const styles = window.getComputedStyle(container);
@@ -36,20 +105,34 @@ describe('IframeGrid', () => {
   });
 
   it('renders correct number of iframe-panel elements for 2x2 grid', async () => {
-    const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+    const testIframes: IframeConfig[] = [
+      { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+      { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      { id: '3', url: 'https://example.com/3', position: { row: 1, col: 0 } },
+      { id: '4', url: 'https://example.com/4', position: { row: 1, col: 1 } },
+    ];
+    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
     const panels = el.shadowRoot!.querySelectorAll('iframe-panel');
     expect(panels.length).to.equal(4);
   });
 
   it('renders correct number of iframe-panel elements for custom grid', async () => {
+    const testIframes: IframeConfig[] = [
+      { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+      { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      { id: '3', url: 'https://example.com/3', position: { row: 0, col: 2 } },
+      { id: '4', url: 'https://example.com/4', position: { row: 1, col: 0 } },
+      { id: '5', url: 'https://example.com/5', position: { row: 1, col: 1 } },
+      { id: '6', url: 'https://example.com/6', position: { row: 1, col: 2 } },
+    ];
     const customGrid: GridConfig = {
       columns: 3,
       rows: 2,
       columnRatios: [1, 1, 1],
       rowRatios: [1, 1],
     };
-    const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
     const panels = el.shadowRoot!.querySelectorAll('iframe-panel');
     expect(panels.length).to.equal(6);
@@ -60,7 +143,13 @@ describe('IframeGrid', () => {
       { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
       { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
     ];
-    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
+    const customGrid: GridConfig = {
+      columns: 2,
+      rows: 1,
+      columnRatios: [1, 1],
+      rowRatios: [1],
+    };
+    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
     const panels = el.shadowRoot!.querySelectorAll('iframe-panel');
     expect((panels[0] as any).url).to.equal('https://example.com/1');
@@ -68,13 +157,18 @@ describe('IframeGrid', () => {
   });
 
   it('sets grid-template-columns based on columnRatios with divider tracks', async () => {
+    const testIframes: IframeConfig[] = [
+      { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+      { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      { id: '3', url: 'https://example.com/3', position: { row: 0, col: 2 } },
+    ];
     const customGrid: GridConfig = {
       columns: 3,
       rows: 1,
       columnRatios: [1, 2, 1],
       rowRatios: [1],
     };
-    const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
     const container = el.shadowRoot!.querySelector('.grid-container') as HTMLElement;
     // Divider tracks (4px) are interleaved between column ratios
@@ -82,13 +176,18 @@ describe('IframeGrid', () => {
   });
 
   it('sets grid-template-rows based on rowRatios with divider tracks', async () => {
+    const testIframes: IframeConfig[] = [
+      { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+      { id: '2', url: 'https://example.com/2', position: { row: 1, col: 0 } },
+      { id: '3', url: 'https://example.com/3', position: { row: 2, col: 0 } },
+    ];
     const customGrid: GridConfig = {
       columns: 1,
       rows: 3,
       columnRatios: [1],
       rowRatios: [1, 3, 1],
     };
-    const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
     const container = el.shadowRoot!.querySelector('.grid-container') as HTMLElement;
     // Divider tracks (4px) are interleaved between row ratios
@@ -99,7 +198,13 @@ describe('IframeGrid', () => {
     const testIframes: IframeConfig[] = [
       { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
     ];
-    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
+    const customGrid: GridConfig = {
+      columns: 2,
+      rows: 2,
+      columnRatios: [1, 1],
+      rowRatios: [1, 1],
+    };
+    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
     const panels = el.shadowRoot!.querySelectorAll('iframe-panel');
     expect(panels.length).to.equal(4);
@@ -108,13 +213,21 @@ describe('IframeGrid', () => {
   });
 
   it('renders vertical dividers between columns', async () => {
+    const testIframes: IframeConfig[] = [
+      { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+      { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      { id: '3', url: 'https://example.com/3', position: { row: 0, col: 2 } },
+      { id: '4', url: 'https://example.com/4', position: { row: 1, col: 0 } },
+      { id: '5', url: 'https://example.com/5', position: { row: 1, col: 1 } },
+      { id: '6', url: 'https://example.com/6', position: { row: 1, col: 2 } },
+    ];
     const customGrid: GridConfig = {
       columns: 3,
       rows: 2,
       columnRatios: [1, 1, 1],
       rowRatios: [1, 1],
     };
-    const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
     const verticalDividers = el.shadowRoot!.querySelectorAll('grid-divider[orientation="vertical"]');
     // 3 columns = 2 vertical dividers
@@ -122,13 +235,21 @@ describe('IframeGrid', () => {
   });
 
   it('renders horizontal dividers between rows', async () => {
+    const testIframes: IframeConfig[] = [
+      { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+      { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      { id: '3', url: 'https://example.com/3', position: { row: 1, col: 0 } },
+      { id: '4', url: 'https://example.com/4', position: { row: 1, col: 1 } },
+      { id: '5', url: 'https://example.com/5', position: { row: 2, col: 0 } },
+      { id: '6', url: 'https://example.com/6', position: { row: 2, col: 1 } },
+    ];
     const customGrid: GridConfig = {
       columns: 2,
       rows: 3,
       columnRatios: [1, 1],
       rowRatios: [1, 1, 1],
     };
-    const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
     const horizontalDividers = el.shadowRoot!.querySelectorAll('grid-divider[orientation="horizontal"]');
     // 3 rows = 2 horizontal dividers
@@ -136,26 +257,34 @@ describe('IframeGrid', () => {
   });
 
   it('renders no dividers for 1x1 grid', async () => {
+    const testIframes: IframeConfig[] = [
+      { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+    ];
     const customGrid: GridConfig = {
       columns: 1,
       rows: 1,
       columnRatios: [1],
       rowRatios: [1],
     };
-    const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
     const dividers = el.shadowRoot!.querySelectorAll('grid-divider');
     expect(dividers.length).to.equal(0);
   });
 
   it('sets correct index on dividers', async () => {
+    const testIframes: IframeConfig[] = [
+      { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+      { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      { id: '3', url: 'https://example.com/3', position: { row: 0, col: 2 } },
+    ];
     const customGrid: GridConfig = {
       columns: 3,
       rows: 1,
       columnRatios: [1, 1, 1],
       rowRatios: [1],
     };
-    const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+    const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
     const verticalDividers = el.shadowRoot!.querySelectorAll('grid-divider[orientation="vertical"]');
     expect((verticalDividers[0] as any).index).to.equal(0);
@@ -164,13 +293,19 @@ describe('IframeGrid', () => {
 
   describe('drag start handling', () => {
     it('stores drag state on divider-drag-start event', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+        { id: '3', url: 'https://example.com/3', position: { row: 1, col: 0 } },
+        { id: '4', url: 'https://example.com/4', position: { row: 1, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 2,
         columnRatios: [1, 2],
         rowRatios: [1, 1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -186,13 +321,18 @@ describe('IframeGrid', () => {
     });
 
     it('captures initial column ratios at drag start', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+        { id: '3', url: 'https://example.com/3', position: { row: 0, col: 2 } },
+      ];
       const customGrid: GridConfig = {
         columns: 3,
         rows: 1,
         columnRatios: [1, 2, 3],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -203,13 +343,18 @@ describe('IframeGrid', () => {
     });
 
     it('captures initial row ratios at drag start', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 1, col: 0 } },
+        { id: '3', url: 'https://example.com/3', position: { row: 2, col: 0 } },
+      ];
       const customGrid: GridConfig = {
         columns: 1,
         rows: 3,
         columnRatios: [1],
         rowRatios: [2, 1, 3],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -220,13 +365,17 @@ describe('IframeGrid', () => {
     });
 
     it('dispatches grid-drag-start event to parent', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       let eventDetail: unknown = null;
       el.addEventListener('grid-drag-start', ((e: CustomEvent) => {
@@ -244,7 +393,13 @@ describe('IframeGrid', () => {
     });
 
     it('clears drag state via clearDragState method', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+        { id: '3', url: 'https://example.com/3', position: { row: 1, col: 0 } },
+        { id: '4', url: 'https://example.com/4', position: { row: 1, col: 1 } },
+      ];
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -258,7 +413,13 @@ describe('IframeGrid', () => {
     });
 
     it('removes divider dragging class on clearDragState', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+        { id: '3', url: 'https://example.com/3', position: { row: 1, col: 0 } },
+        { id: '4', url: 'https://example.com/4', position: { row: 1, col: 1 } },
+      ];
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -272,13 +433,17 @@ describe('IframeGrid', () => {
     });
 
     it('stores independent copy of ratios (not reference)', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -296,7 +461,13 @@ describe('IframeGrid', () => {
 
   describe('mousemove drag tracking', () => {
     it('adds mousemove listener to document on drag start', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+        { id: '3', url: 'https://example.com/3', position: { row: 1, col: 0 } },
+        { id: '4', url: 'https://example.com/4', position: { row: 1, col: 1 } },
+      ];
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -307,13 +478,17 @@ describe('IframeGrid', () => {
     });
 
     it('dispatches ratio-change event on vertical divider mousemove', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       let ratioChangeEvent: CustomEvent | null = null;
       el.addEventListener('ratio-change', ((e: CustomEvent) => {
@@ -337,13 +512,17 @@ describe('IframeGrid', () => {
     });
 
     it('dispatches ratio-change event on horizontal divider mousemove', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 1, col: 0 } },
+      ];
       const customGrid: GridConfig = {
         columns: 1,
         rows: 2,
         columnRatios: [1],
         rowRatios: [1, 1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       let ratioChangeEvent: CustomEvent | null = null;
       el.addEventListener('ratio-change', ((e: CustomEvent) => {
@@ -367,13 +546,17 @@ describe('IframeGrid', () => {
     });
 
     it('adjusts adjacent column ratios based on delta for vertical drag', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       let ratioChangeEvent: CustomEvent | null = null;
       el.addEventListener('ratio-change', ((e: CustomEvent) => {
@@ -397,13 +580,17 @@ describe('IframeGrid', () => {
     });
 
     it('adjusts adjacent row ratios based on delta for horizontal drag', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 1, col: 0 } },
+      ];
       const customGrid: GridConfig = {
         columns: 1,
         rows: 2,
         columnRatios: [1],
         rowRatios: [1, 1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       let ratioChangeEvent: CustomEvent | null = null;
       el.addEventListener('ratio-change', ((e: CustomEvent) => {
@@ -427,13 +614,17 @@ describe('IframeGrid', () => {
     });
 
     it('enforces minimum ratio of 0.1 to prevent panels from disappearing', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       let ratioChangeEvent: CustomEvent | null = null;
       el.addEventListener('ratio-change', ((e: CustomEvent) => {
@@ -456,7 +647,13 @@ describe('IframeGrid', () => {
     });
 
     it('removes mousemove listener on clearDragState', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+        { id: '3', url: 'https://example.com/3', position: { row: 1, col: 0 } },
+        { id: '4', url: 'https://example.com/4', position: { row: 1, col: 1 } },
+      ];
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -470,7 +667,13 @@ describe('IframeGrid', () => {
     });
 
     it('does not dispatch ratio-change when no drag is active', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+        { id: '3', url: 'https://example.com/3', position: { row: 1, col: 0 } },
+        { id: '4', url: 'https://example.com/4', position: { row: 1, col: 1 } },
+      ];
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       let ratioChangeEvent: CustomEvent | null = null;
       el.addEventListener('ratio-change', ((e: CustomEvent) => {
@@ -484,13 +687,17 @@ describe('IframeGrid', () => {
     });
 
     it('tracks movement smoothly without jitter on multiple mousemove events', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const events: CustomEvent[] = [];
       el.addEventListener('ratio-change', ((e: CustomEvent) => {
@@ -524,13 +731,17 @@ describe('IframeGrid', () => {
 
   describe('CSS grid template update on drag', () => {
     it('updates columnRatios in grid property on vertical divider drag', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
@@ -548,13 +759,17 @@ describe('IframeGrid', () => {
     });
 
     it('updates rowRatios in grid property on horizontal divider drag', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 1, col: 0 } },
+      ];
       const customGrid: GridConfig = {
         columns: 1,
         rows: 2,
         columnRatios: [1],
         rowRatios: [1, 1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
@@ -572,13 +787,17 @@ describe('IframeGrid', () => {
     });
 
     it('updates CSS grid-template-columns in real-time during drag', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const container = el.shadowRoot!.querySelector('.grid-container') as HTMLElement;
       const initialTemplate = container.style.gridTemplateColumns;
@@ -605,13 +824,17 @@ describe('IframeGrid', () => {
     });
 
     it('updates CSS grid-template-rows in real-time during drag', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 1, col: 0 } },
+      ];
       const customGrid: GridConfig = {
         columns: 1,
         rows: 2,
         columnRatios: [1],
         rowRatios: [1, 1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const container = el.shadowRoot!.querySelector('.grid-container') as HTMLElement;
       const initialTemplate = container.style.gridTemplateRows;
@@ -638,13 +861,17 @@ describe('IframeGrid', () => {
     });
 
     it('iframe panels resize visually during drag', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
@@ -669,8 +896,15 @@ describe('IframeGrid', () => {
   });
 
   describe('mouseup drag end', () => {
+    const defaultIframes: IframeConfig[] = [
+      { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+      { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      { id: '3', url: 'https://example.com/3', position: { row: 1, col: 0 } },
+      { id: '4', url: 'https://example.com/4', position: { row: 1, col: 1 } },
+    ];
+
     it('adds mouseup listener to document on drag start', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${defaultIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -683,7 +917,7 @@ describe('IframeGrid', () => {
     });
 
     it('removes mousemove listener on mouseup', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${defaultIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -698,7 +932,7 @@ describe('IframeGrid', () => {
     });
 
     it('removes mouseup listener on mouseup', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${defaultIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -713,7 +947,7 @@ describe('IframeGrid', () => {
     });
 
     it('clears drag state on mouseup', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${defaultIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -728,7 +962,7 @@ describe('IframeGrid', () => {
     });
 
     it('removes divider dragging class on mouseup', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${defaultIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -743,13 +977,17 @@ describe('IframeGrid', () => {
     });
 
     it('dispatches grid-drag-complete event on mouseup', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       let dragCompleteEvent: CustomEvent | null = null;
       el.addEventListener('grid-drag-complete', ((e: CustomEvent) => {
@@ -775,13 +1013,17 @@ describe('IframeGrid', () => {
     });
 
     it('finalizes ratio values in grid-drag-complete event', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       let dragCompleteEvent: CustomEvent | null = null;
       el.addEventListener('grid-drag-complete', ((e: CustomEvent) => {
@@ -805,13 +1047,17 @@ describe('IframeGrid', () => {
     });
 
     it('ratios persist after drag ends', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
@@ -832,7 +1078,13 @@ describe('IframeGrid', () => {
     });
 
     it('does not dispatch grid-drag-complete when no drag is active', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+        { id: '3', url: 'https://example.com/3', position: { row: 1, col: 0 } },
+        { id: '4', url: 'https://example.com/4', position: { row: 1, col: 1 } },
+      ];
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       let dragCompleteEvent: CustomEvent | null = null;
       el.addEventListener('grid-drag-complete', ((e: CustomEvent) => {
@@ -846,13 +1098,17 @@ describe('IframeGrid', () => {
     });
 
     it('drag ends cleanly with full cycle', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const events: string[] = [];
       el.addEventListener('grid-drag-start', () => events.push('start'));
@@ -882,13 +1138,17 @@ describe('IframeGrid', () => {
 
   describe('edge cases for grid resizing', () => {
     it('enforces minimum panel size of 100px for columns', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
@@ -912,13 +1172,17 @@ describe('IframeGrid', () => {
     });
 
     it('enforces minimum panel size of 100px for rows', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 1, col: 0 } },
+      ];
       const customGrid: GridConfig = {
         columns: 1,
         rows: 2,
         columnRatios: [1],
         rowRatios: [1, 1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
@@ -942,13 +1206,17 @@ describe('IframeGrid', () => {
     });
 
     it('prevents ratios from going negative when dragging left', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
@@ -966,13 +1234,17 @@ describe('IframeGrid', () => {
     });
 
     it('prevents ratios from going negative when dragging up', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 1, col: 0 } },
+      ];
       const customGrid: GridConfig = {
         columns: 1,
         rows: 2,
         columnRatios: [1],
         rowRatios: [1, 1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
@@ -990,13 +1262,17 @@ describe('IframeGrid', () => {
     });
 
     it('handles mouse leaving viewport during drag by ending drag', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       let dragCompleteEvent: CustomEvent | null = null;
       el.addEventListener('grid-drag-complete', ((e: CustomEvent) => {
@@ -1026,7 +1302,13 @@ describe('IframeGrid', () => {
     });
 
     it('removes mouseleave listener on clearDragState', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+        { id: '3', url: 'https://example.com/3', position: { row: 1, col: 0 } },
+        { id: '4', url: 'https://example.com/4', position: { row: 1, col: 1 } },
+      ];
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
@@ -1040,13 +1322,17 @@ describe('IframeGrid', () => {
     });
 
     it('ensures ratios always sum to the same total after drag', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const initialSum = customGrid.columnRatios.reduce((sum, r) => sum + r, 0);
 
@@ -1067,13 +1353,17 @@ describe('IframeGrid', () => {
     });
 
     it('ensures ratios sum correctly even with extreme drag', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const initialSum = customGrid.columnRatios.reduce((sum, r) => sum + r, 0);
 
@@ -1094,13 +1384,18 @@ describe('IframeGrid', () => {
     });
 
     it('works correctly with various grid configurations (3 columns)', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+        { id: '3', url: 'https://example.com/3', position: { row: 0, col: 2 } },
+      ];
       const customGrid: GridConfig = {
         columns: 3,
         rows: 1,
         columnRatios: [1, 2, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const initialSum = customGrid.columnRatios.reduce((sum, r) => sum + r, 0);
 
@@ -1125,13 +1420,17 @@ describe('IframeGrid', () => {
     });
 
     it('ensures no panel can be resized to invisible (always visible)', async () => {
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+      ];
       const customGrid: GridConfig = {
         columns: 2,
         rows: 1,
         columnRatios: [1, 1],
         rowRatios: [1],
       };
-      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
@@ -1155,7 +1454,13 @@ describe('IframeGrid', () => {
     });
 
     it('does not fire grid-drag-complete on mouseleave when no drag is active', async () => {
-      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+      const testIframes: IframeConfig[] = [
+        { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
+        { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
+        { id: '3', url: 'https://example.com/3', position: { row: 1, col: 0 } },
+        { id: '4', url: 'https://example.com/4', position: { row: 1, col: 1 } },
+      ];
+      const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       let dragCompleteEvent: CustomEvent | null = null;
       el.addEventListener('grid-drag-complete', ((e: CustomEvent) => {

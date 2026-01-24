@@ -9,19 +9,14 @@ import './add-iframe-modal.js';
 @customElement('dashboard-app')
 export class DashboardApp extends LitElement {
   @state()
-  private iframes: IframeConfig[] = [
-    { id: 'iframe-1', url: 'https://example.com', position: { row: 0, col: 0 } },
-    { id: 'iframe-2', url: 'https://example.org', position: { row: 0, col: 1 } },
-    { id: 'iframe-3', url: 'https://example.net', position: { row: 1, col: 0 } },
-    { id: 'iframe-4', url: 'https://example.edu', position: { row: 1, col: 1 } },
-  ];
+  private iframes: IframeConfig[] = [];
 
   @state()
   private grid: GridConfig = {
-    columns: 2,
-    rows: 2,
-    columnRatios: [1, 1],
-    rowRatios: [1, 1],
+    columns: 1,
+    rows: 1,
+    columnRatios: [1],
+    rowRatios: [1],
   };
 
   @state()

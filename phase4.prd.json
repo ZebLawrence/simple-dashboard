@@ -91,7 +91,7 @@
         "No gaps left in grid layout",
         "Verify grid displays correctly after removal"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

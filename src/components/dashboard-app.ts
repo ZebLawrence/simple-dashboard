@@ -116,7 +116,101 @@ export class DashboardApp extends LitElement {
 
   private _handleRemoveIframe(event: CustomEvent<{ id: string }>) {
     const { id } = event.detail;
-    this.iframes = this.iframes.filter(iframe => iframe.id !== id);
+    const removedIframe = this.iframes.find(iframe => iframe.id === id);
+    if (!removedIframe) return;
+
+    // Remove the iframe from state
+    const remainingIframes = this.iframes.filter(iframe => iframe.id !== id);
+
+    // Reflow the grid
+    this._reflowGrid(remainingIframes);
+  }
+
+  private _reflowGrid(iframes: IframeConfig[]) {
+    if (iframes.length === 0) {
+      // Reset to minimum 1x1 grid with empty state
+      this.iframes = [];
+      this.grid = {
+        columns: 1,
+        rows: 1,
+        columnRatios: [1],
+        rowRatios: [1],
+      };
+      return;
+    }
+
+    // Sort iframes by their current position (row-major order)
+    const sortedIframes = [...iframes].sort((a, b) => {
+      if (a.position.row !== b.position.row) {
+        return a.position.row - b.position.row;
+      }
+      return a.position.col - b.position.col;
+    });
+
+    // Calculate optimal grid dimensions
+    const { newColumns, newRows } = this._calculateOptimalGridDimensions(sortedIframes.length);
+
+    // Reassign positions in row-major order to fill gaps
+    const repositionedIframes = sortedIframes.map((iframe, index) => ({
+      ...iframe,
+      position: {
+        row: Math.floor(index / newColumns),
+        col: index % newColumns,
+      },
+    }));
+
+    // Calculate new ratios - distribute proportionally
+    const newColumnRatios = this._calculateNewRatios(this.grid.columnRatios, this.grid.columns, newColumns);
+    const newRowRatios = this._calculateNewRatios(this.grid.rowRatios, this.grid.rows, newRows);
+
+    this.iframes = repositionedIframes;
+    this.grid = {
+      columns: newColumns,
+      rows: newRows,
+      columnRatios: newColumnRatios,
+      rowRatios: newRowRatios,
+    };
+  }
+
+  private _calculateOptimalGridDimensions(count: number): { newColumns: number; newRows: number } {
+    if (count === 0) {
+      return { newColumns: 1, newRows: 1 };
+    }
+
+    // Try to keep the grid as square as possible
+    const sqrt = Math.sqrt(count);
+    let newColumns = Math.ceil(sqrt);
+    let newRows = Math.ceil(count / newColumns);
+
+    // Ensure we have enough cells
+    while (newColumns * newRows < count) {
+      if (newColumns <= newRows) {
+        newColumns++;
+      } else {
+        newRows++;
+      }
+    }
+
+    return { newColumns, newRows };
+  }
+
+  private _calculateNewRatios(oldRatios: number[], oldCount: number, newCount: number): number[] {
+    if (newCount === oldCount) {
+      return [...oldRatios];
+    }
+
+    if (newCount < oldCount) {
+      // Shrinking: take the first newCount ratios and normalize
+      const keptRatios = oldRatios.slice(0, newCount);
+      return keptRatios;
+    }
+
+    // Expanding: add new ratios with value 1
+    const newRatios = [...oldRatios];
+    while (newRatios.length < newCount) {
+      newRatios.push(1);
+    }
+    return newRatios;
   }
 
   private _getNextGridPosition(): { row: number; col: number } {

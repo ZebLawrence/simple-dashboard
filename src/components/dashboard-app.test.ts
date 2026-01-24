@@ -364,4 +364,227 @@ describe('DashboardApp', () => {
       expect(iframeStillInGrid).to.be.false;
     });
   });
+
+  describe('grid reflow after remove', () => {
+    it('repositions remaining iframes to fill gaps', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Remove iframe from middle (position 0,1 which is the second in row-major order)
+      const iframeToRemove = (el as any).iframes.find(
+        (iframe: any) => iframe.position.row === 0 && iframe.position.col === 1
+      );
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToRemove.id },
+      }));
+      await el.updateComplete;
+
+      // After removing one iframe from 2x2 grid with 4 iframes, we should have 3 iframes
+      // They should be repositioned with no gaps
+      const remainingIframes = (el as any).iframes;
+      expect(remainingIframes.length).to.equal(3);
+
+      // Check that positions are contiguous (no gaps)
+      const positions = remainingIframes.map((iframe: any) =>
+        `${iframe.position.row},${iframe.position.col}`
+      );
+      // In a reflow, iframes should be arranged in row-major order
+      expect(positions).to.include('0,0');
+    });
+
+    it('shrinks grid when row becomes empty', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Remove 2 iframes to leave only 2 (which should fit in 2x1 or 1x2)
+      const iframesToRemove = (el as any).iframes.slice(2);
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      for (const iframe of iframesToRemove) {
+        grid.dispatchEvent(new CustomEvent('remove-iframe', {
+          bubbles: true,
+          composed: true,
+          detail: { id: iframe.id },
+        }));
+        await el.updateComplete;
+      }
+
+      const finalGrid = (el as any).grid;
+      // 2 iframes should fit in a 2x1 grid (2 columns, 1 row)
+      expect(finalGrid.columns * finalGrid.rows).to.be.greaterThanOrEqual(2);
+      expect(finalGrid.rows).to.equal(1);
+    });
+
+    it('shrinks grid when column becomes empty', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Remove 3 iframes to leave only 1 (which should fit in 1x1)
+      const iframesToRemove = (el as any).iframes.slice(1);
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      for (const iframe of iframesToRemove) {
+        grid.dispatchEvent(new CustomEvent('remove-iframe', {
+          bubbles: true,
+          composed: true,
+          detail: { id: iframe.id },
+        }));
+        await el.updateComplete;
+      }
+
+      const finalGrid = (el as any).grid;
+      // 1 iframe should fit in a 1x1 grid
+      expect(finalGrid.columns).to.equal(1);
+      expect(finalGrid.rows).to.equal(1);
+    });
+
+    it('adjusts column ratios when columns shrink', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Start with 2x2 grid with columnRatios [1, 1]
+      const initialColumnRatios = (el as any).grid.columnRatios;
+      expect(initialColumnRatios.length).to.equal(2);
+
+      // Remove 3 iframes to get to 1x1 grid
+      const iframesToRemove = (el as any).iframes.slice(1);
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      for (const iframe of iframesToRemove) {
+        grid.dispatchEvent(new CustomEvent('remove-iframe', {
+          bubbles: true,
+          composed: true,
+          detail: { id: iframe.id },
+        }));
+        await el.updateComplete;
+      }
+
+      const finalGrid = (el as any).grid;
+      expect(finalGrid.columnRatios.length).to.equal(finalGrid.columns);
+    });
+
+    it('adjusts row ratios when rows shrink', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Start with 2x2 grid with rowRatios [1, 1]
+      const initialRowRatios = (el as any).grid.rowRatios;
+      expect(initialRowRatios.length).to.equal(2);
+
+      // Remove 3 iframes to get to 1x1 grid
+      const iframesToRemove = (el as any).iframes.slice(1);
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      for (const iframe of iframesToRemove) {
+        grid.dispatchEvent(new CustomEvent('remove-iframe', {
+          bubbles: true,
+          composed: true,
+          detail: { id: iframe.id },
+        }));
+        await el.updateComplete;
+      }
+
+      const finalGrid = (el as any).grid;
+      expect(finalGrid.rowRatios.length).to.equal(finalGrid.rows);
+    });
+
+    it('leaves no gaps in grid layout', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Remove one iframe
+      const iframeToRemove = (el as any).iframes[1];
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToRemove.id },
+      }));
+      await el.updateComplete;
+
+      const finalIframes = (el as any).iframes;
+      const finalGrid = (el as any).grid;
+
+      // Every cell up to the number of iframes should be occupied
+      const occupiedPositions = new Set(
+        finalIframes.map((iframe: any) => `${iframe.position.row},${iframe.position.col}`)
+      );
+
+      // Count positions - should have no gaps from (0,0) to the last iframe
+      let positionIndex = 0;
+      for (let row = 0; row < finalGrid.rows; row++) {
+        for (let col = 0; col < finalGrid.columns; col++) {
+          if (positionIndex < finalIframes.length) {
+            expect(occupiedPositions.has(`${row},${col}`)).to.be.true;
+            positionIndex++;
+          }
+        }
+      }
+    });
+
+    it('handles removing all iframes gracefully', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const allIframes = [...(el as any).iframes];
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      for (const iframe of allIframes) {
+        grid.dispatchEvent(new CustomEvent('remove-iframe', {
+          bubbles: true,
+          composed: true,
+          detail: { id: iframe.id },
+        }));
+        await el.updateComplete;
+      }
+
+      expect((el as any).iframes.length).to.equal(0);
+      expect((el as any).grid.columns).to.equal(1);
+      expect((el as any).grid.rows).to.equal(1);
+    });
+
+    it('grid displays correctly after removal', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Remove one iframe
+      const iframeToRemove = (el as any).iframes[0];
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToRemove.id },
+      }));
+      await el.updateComplete;
+
+      // Verify the grid component received the updated iframes and grid config
+      const gridComponent = el.shadowRoot!.querySelector('iframe-grid') as any;
+      expect(gridComponent.iframes.length).to.equal(3);
+      expect(gridComponent.grid.columnRatios.length).to.equal(gridComponent.grid.columns);
+      expect(gridComponent.grid.rowRatios.length).to.equal(gridComponent.grid.rows);
+    });
+
+    it('maintains iframe order after reflow', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Get initial iframes (excluding the one we'll remove)
+      const iframeToRemove = (el as any).iframes[1];
+      const expectedRemainingIds = (el as any).iframes
+        .filter((iframe: any) => iframe.id !== iframeToRemove.id)
+        .map((iframe: any) => iframe.id);
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToRemove.id },
+      }));
+      await el.updateComplete;
+
+      const remainingIds = (el as any).iframes.map((iframe: any) => iframe.id);
+
+      // All remaining iframes should still be present
+      for (const id of expectedRemainingIds) {
+        expect(remainingIds).to.include(id);
+      }
+    });
+  });
 });

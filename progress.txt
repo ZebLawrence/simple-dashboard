@@ -149,3 +149,36 @@ Added 6 tests to `src/components/dashboard-app.test.ts`:
 - Test for iframe disappearing from rendered grid after removal
 
 All 150 tests passing.
+
+### Task 7: Handle grid reflow after remove - COMPLETE
+
+Implemented grid reflow functionality to handle removing iframes and maintaining a clean grid layout:
+
+Updated `src/components/dashboard-app.ts`:
+- Modified `_handleRemoveIframe()` method to call `_reflowGrid()` after removing an iframe
+- Added `_reflowGrid()` method that:
+  - Handles empty grid state (resets to 1x1)
+  - Sorts remaining iframes by their current position (row-major order)
+  - Calculates optimal grid dimensions using `_calculateOptimalGridDimensions()`
+  - Reassigns iframe positions in row-major order to fill gaps
+  - Adjusts column and row ratios using `_calculateNewRatios()`
+- Added `_calculateOptimalGridDimensions()` method that:
+  - Calculates a roughly square grid based on iframe count
+  - Uses square root to determine optimal dimensions
+  - Ensures sufficient cells for all iframes
+- Added `_calculateNewRatios()` method that:
+  - Keeps existing ratios when shrinking (takes first N ratios)
+  - Adds new ratios with value 1 when expanding
+
+Added 9 tests to `src/components/dashboard-app.test.ts`:
+- Test for repositioning remaining iframes to fill gaps
+- Test for shrinking grid when row becomes empty
+- Test for shrinking grid when column becomes empty
+- Test for adjusting column ratios when columns shrink
+- Test for adjusting row ratios when rows shrink
+- Test for leaving no gaps in grid layout
+- Test for handling removing all iframes gracefully
+- Test for grid displaying correctly after removal
+- Test for maintaining iframe order after reflow
+
+All 159 tests passing.

@@ -77,7 +77,7 @@
         "Other panels hidden during fullscreen",
         "Verify transition in and out of fullscreen"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

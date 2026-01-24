@@ -21,6 +21,9 @@ export class IframePanel extends LitElement {
   @state()
   private _isRefreshing = false;
 
+  @state()
+  private _isFullscreen = false;
+
   static override styles = css`
     :host {
       display: block;
@@ -198,6 +201,75 @@ export class IframePanel extends LitElement {
         transform: rotate(360deg);
       }
     }
+
+    .fullscreen-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #1a1a2e;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      animation: fullscreen-enter 0.2s ease-out;
+    }
+
+    @keyframes fullscreen-enter {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .fullscreen-toolbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      background-color: rgba(15, 52, 96, 0.85);
+      z-index: 1001;
+    }
+
+    .fullscreen-iframe {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .exit-fullscreen-button {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 4px;
+      background-color: rgba(233, 69, 96, 0.9);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      line-height: 1;
+      padding: 0;
+      transition: background-color 0.15s ease;
+    }
+
+    .exit-fullscreen-button:hover {
+      background-color: #e94560;
+    }
+
+    .exit-fullscreen-button:active {
+      background-color: #c73e54;
+    }
   `;
 
   private _handleClose() {
@@ -228,6 +300,10 @@ export class IframePanel extends LitElement {
 
   get isRefreshing(): boolean {
     return this._isRefreshing;
+  }
+
+  get isFullscreen(): boolean {
+    return this._isFullscreen;
   }
 
   private _handleRefreshClick() {
@@ -299,6 +375,23 @@ export class IframePanel extends LitElement {
     this._editUrlValue = '';
   }
 
+  private _handleFullscreenClick() {
+    this._isFullscreen = true;
+    document.addEventListener('keydown', this._handleFullscreenKeydown);
+  }
+
+  private _handleExitFullscreen() {
+    this._isFullscreen = false;
+    document.removeEventListener('keydown', this._handleFullscreenKeydown);
+  }
+
+  private _handleFullscreenKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      this._handleExitFullscreen();
+    }
+  };
+
   override render() {
     return html`
       <div
@@ -309,7 +402,7 @@ export class IframePanel extends LitElement {
         <div class="toolbar ${this._isHovered ? 'visible' : ''}">
           <button class="toolbar-button edit-button" @click=${this._handleEditClick} title="Edit URL">✎</button>
           <button class="toolbar-button refresh-button" @click=${this._handleRefreshClick} title="Refresh">↻</button>
-          <button class="toolbar-button fullscreen-button" title="Fullscreen">⛶</button>
+          <button class="toolbar-button fullscreen-button" @click=${this._handleFullscreenClick} title="Fullscreen">⛶</button>
           <button class="toolbar-button close-button" @click=${this._handleClose} title="Remove iframe">×</button>
         </div>
         <div class="hover-overlay"></div>
@@ -344,6 +437,21 @@ export class IframePanel extends LitElement {
           @load=${this._handleIframeLoad}
         ></iframe>
       </div>
+      ${this._isFullscreen
+        ? html`
+            <div class="fullscreen-overlay">
+              <div class="fullscreen-toolbar">
+                <button class="exit-fullscreen-button" @click=${this._handleExitFullscreen} title="Exit Fullscreen">×</button>
+              </div>
+              <iframe
+                class="fullscreen-iframe"
+                src=${this.url}
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              ></iframe>
+            </div>
+          `
+        : ''}
     `;
   }
 }

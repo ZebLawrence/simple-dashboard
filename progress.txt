@@ -136,3 +136,42 @@ Added 10 tests to `src/components/iframe-panel.test.ts`:
 - Test for iframe has load event listener
 
 All 203 tests passing.
+
+### Phase 5 Task 6: Implement Fullscreen mode - COMPLETE
+
+Updated `src/components/iframe-panel.ts`:
+- Added `_isFullscreen` state property to track fullscreen state
+- Added `isFullscreen` getter for external access to fullscreen state
+- Added `_handleFullscreenClick()` method to enter fullscreen mode
+  - Sets `_isFullscreen` to true
+  - Adds document-level keydown listener for Escape key
+- Added `_handleExitFullscreen()` method to exit fullscreen mode
+  - Sets `_isFullscreen` to false
+  - Removes document-level keydown listener
+- Added `_handleFullscreenKeydown` arrow function to handle Escape key
+- Added CSS for fullscreen overlay:
+  - `.fullscreen-overlay` - fixed position covering entire viewport with z-index 1000
+  - `.fullscreen-toolbar` - positioned at top with exit button
+  - `.fullscreen-iframe` - fills remaining space
+  - `.exit-fullscreen-button` - styled 32x32px button with × symbol
+  - `@keyframes fullscreen-enter` - smooth scale/fade animation on entry
+- Fullscreen overlay renders a separate iframe with same URL
+- Exit button and Escape key both close fullscreen mode
+
+Added 14 tests to `src/components/iframe-panel.test.ts`:
+- Test for isFullscreen is false by default
+- Test for clicking fullscreen button sets isFullscreen to true
+- Test for showing fullscreen overlay when fullscreen is active
+- Test for fullscreen overlay having fixed positioning to cover viewport
+- Test for fullscreen overlay containing exit button
+- Test for exit fullscreen button having × symbol
+- Test for clicking exit button closes fullscreen
+- Test for fullscreen overlay is hidden after exit
+- Test for pressing Escape exits fullscreen
+- Test for fullscreen overlay containing an iframe
+- Test for fullscreen iframe having same URL as panel
+- Test for fullscreen overlay not being rendered when not fullscreen
+- Test for fullscreen overlay having high z-index
+- Test for fullscreen toolbar being visible in fullscreen mode
+
+All 217 tests passing.

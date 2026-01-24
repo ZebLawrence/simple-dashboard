@@ -633,4 +633,165 @@ describe('IframePanel', () => {
       // The iframe should handle the load event - verified by dispatching load event and checking state change
     });
   });
+
+  describe('fullscreen functionality', () => {
+    it('isFullscreen is false by default', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      expect(el.isFullscreen).to.be.false;
+    });
+
+    it('clicking fullscreen button sets isFullscreen to true', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      expect(el.isFullscreen).to.be.true;
+    });
+
+    it('shows fullscreen overlay when fullscreen is active', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      const overlay = el.shadowRoot!.querySelector('.fullscreen-overlay');
+      expect(overlay).to.exist;
+    });
+
+    it('fullscreen overlay has fixed positioning to cover viewport', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      const overlay = el.shadowRoot!.querySelector('.fullscreen-overlay') as HTMLElement;
+      const styles = window.getComputedStyle(overlay);
+      expect(styles.position).to.equal('fixed');
+      expect(styles.top).to.equal('0px');
+      expect(styles.left).to.equal('0px');
+    });
+
+    it('fullscreen overlay contains exit button', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      const exitButton = el.shadowRoot!.querySelector('.exit-fullscreen-button');
+      expect(exitButton).to.exist;
+    });
+
+    it('exit fullscreen button has × symbol', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      const exitButton = el.shadowRoot!.querySelector('.exit-fullscreen-button')!;
+      expect(exitButton.textContent).to.equal('×');
+    });
+
+    it('clicking exit button closes fullscreen', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      const exitButton = el.shadowRoot!.querySelector('.exit-fullscreen-button') as HTMLButtonElement;
+      exitButton.click();
+      await el.updateComplete;
+
+      expect(el.isFullscreen).to.be.false;
+    });
+
+    it('fullscreen overlay is hidden after exit', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      const exitButton = el.shadowRoot!.querySelector('.exit-fullscreen-button') as HTMLButtonElement;
+      exitButton.click();
+      await el.updateComplete;
+
+      const overlay = el.shadowRoot!.querySelector('.fullscreen-overlay');
+      expect(overlay).to.be.null;
+    });
+
+    it('pressing Escape exits fullscreen', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+      expect(el.isFullscreen).to.be.true;
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      await el.updateComplete;
+
+      expect(el.isFullscreen).to.be.false;
+    });
+
+    it('fullscreen overlay contains an iframe', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      const iframe = el.shadowRoot!.querySelector('.fullscreen-iframe');
+      expect(iframe).to.exist;
+    });
+
+    it('fullscreen iframe has same URL as panel', async () => {
+      const testUrl = 'https://example.com/page';
+      const el = await fixture<IframePanel>(html`<iframe-panel url=${testUrl}></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      const iframe = el.shadowRoot!.querySelector('.fullscreen-iframe') as HTMLIFrameElement;
+      expect(iframe.src).to.equal(testUrl);
+    });
+
+    it('fullscreen overlay is not rendered when not fullscreen', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+
+      const overlay = el.shadowRoot!.querySelector('.fullscreen-overlay');
+      expect(overlay).to.be.null;
+    });
+
+    it('fullscreen overlay has high z-index', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      const overlay = el.shadowRoot!.querySelector('.fullscreen-overlay') as HTMLElement;
+      const styles = window.getComputedStyle(overlay);
+      expect(parseInt(styles.zIndex)).to.be.greaterThan(100);
+    });
+
+    it('fullscreen toolbar is visible in fullscreen mode', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      const toolbar = el.shadowRoot!.querySelector('.fullscreen-toolbar');
+      expect(toolbar).to.exist;
+    });
+  });
 });

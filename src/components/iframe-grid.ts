@@ -1,10 +1,21 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import type { IframeConfig, GridConfig } from '../types/index.js';
 import './iframe-panel.js';
 import './grid-divider.js';
+import type { GridDivider, DividerOrientation } from './grid-divider.js';
 
 const DIVIDER_SIZE = 4;
+
+export interface DragState {
+  active: boolean;
+  orientation: DividerOrientation;
+  index: number;
+  startX: number;
+  startY: number;
+  initialColumnRatios: number[];
+  initialRowRatios: number[];
+}
 
 @customElement('iframe-grid')
 export class IframeGrid extends LitElement {
@@ -18,6 +29,9 @@ export class IframeGrid extends LitElement {
     columnRatios: [1, 1],
     rowRatios: [1, 1],
   };
+
+  @state()
+  private dragState: DragState | null = null;
 
   static override styles = css`
     :host {
@@ -137,10 +151,55 @@ export class IframeGrid extends LitElement {
     }
 
     return html`
-      <div class="grid-container" style=${gridStyle}>
+      <div
+        class="grid-container"
+        style=${gridStyle}
+        @divider-drag-start=${this.handleDragStart}
+      >
         ${cells}
       </div>
     `;
+  }
+
+  private handleDragStart(event: CustomEvent) {
+    const { orientation, index, startX, startY } = event.detail;
+
+    this.dragState = {
+      active: true,
+      orientation,
+      index,
+      startX,
+      startY,
+      initialColumnRatios: [...this.grid.columnRatios],
+      initialRowRatios: [...this.grid.rowRatios],
+    };
+
+    this.dispatchEvent(
+      new CustomEvent('grid-drag-start', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          orientation,
+          index,
+          initialColumnRatios: this.dragState.initialColumnRatios,
+          initialRowRatios: this.dragState.initialRowRatios,
+        },
+      })
+    );
+  }
+
+  getDragState(): DragState | null {
+    return this.dragState;
+  }
+
+  clearDragState() {
+    if (this.dragState) {
+      const dividers = this.shadowRoot?.querySelectorAll('grid-divider');
+      dividers?.forEach(divider => {
+        (divider as GridDivider).setDragging(false);
+      });
+    }
+    this.dragState = null;
   }
 }
 

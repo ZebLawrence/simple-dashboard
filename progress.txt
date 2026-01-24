@@ -32,3 +32,31 @@ Updated existing tests in `src/components/iframe-grid.test.ts`:
 - Added test for divider index assignment
 
 All 34 tests passing.
+
+### Task 2: Implement mousedown drag start on divider - COMPLETE
+
+Implemented drag start handling in `iframe-grid.ts`:
+
+- Added `DragState` interface to track drag operation state:
+  - `active`: whether a drag is in progress
+  - `orientation`: 'horizontal' or 'vertical'
+  - `index`: which divider is being dragged
+  - `startX`, `startY`: initial mouse coordinates
+  - `initialColumnRatios`, `initialRowRatios`: ratios at drag start (independent copies)
+- Added `@state() dragState` property to track current drag
+- Added `@divider-drag-start` event listener on grid container
+- `handleDragStart()` method captures event details and stores initial ratios
+- Dispatches `grid-drag-start` custom event to parent for external coordination
+- Added `getDragState()` method to expose current drag state
+- Added `clearDragState()` method to reset drag state and remove visual feedback
+
+Added 7 tests to `iframe-grid.test.ts`:
+- Test for storing drag state on divider-drag-start
+- Test for capturing initial column ratios
+- Test for capturing initial row ratios
+- Test for dispatching grid-drag-start event
+- Test for clearDragState method
+- Test for removing dragging class on clearDragState
+- Test for storing independent copy of ratios (not reference)
+
+All 41 tests passing.

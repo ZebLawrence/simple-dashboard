@@ -26,7 +26,7 @@
         "Add visual feedback (highlight) on drag start",
         "Verify drag start triggers correctly"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

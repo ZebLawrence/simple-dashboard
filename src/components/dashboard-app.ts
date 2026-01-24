@@ -77,7 +77,7 @@ export class DashboardApp extends LitElement {
           ></iframe-grid>
         </main>
         <add-iframe-button @add-iframe-click=${this._handleAddIframeClick}></add-iframe-button>
-        <add-iframe-modal .open=${this.modalOpen} @modal-close=${this._handleModalClose}></add-iframe-modal>
+        <add-iframe-modal .open=${this.modalOpen} @modal-close=${this._handleModalClose} @add-iframe=${this._handleAddIframe}></add-iframe-modal>
       </div>
     `;
   }
@@ -88,6 +88,65 @@ export class DashboardApp extends LitElement {
 
   private _handleModalClose() {
     this.modalOpen = false;
+  }
+
+  private _handleAddIframe(event: CustomEvent<{ url: string }>) {
+    const { url } = event.detail;
+
+    // Generate unique ID
+    const id = `iframe-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Calculate next available grid position
+    const position = this._getNextGridPosition();
+
+    // Create new iframe config
+    const newIframe: IframeConfig = {
+      id,
+      url,
+      position,
+    };
+
+    // Add to state
+    this.iframes = [...this.iframes, newIframe];
+
+    // Close modal
+    this.modalOpen = false;
+  }
+
+  private _getNextGridPosition(): { row: number; col: number } {
+    // Find all occupied positions
+    const occupied = new Set(
+      this.iframes.map(iframe => `${iframe.position.row},${iframe.position.col}`)
+    );
+
+    // First, try to find an empty cell in the current grid
+    for (let row = 0; row < this.grid.rows; row++) {
+      for (let col = 0; col < this.grid.columns; col++) {
+        if (!occupied.has(`${row},${col}`)) {
+          return { row, col };
+        }
+      }
+    }
+
+    // No empty cell found, need to expand the grid
+    // Prefer adding columns until grid is roughly square, then add rows
+    if (this.grid.columns <= this.grid.rows) {
+      // Add a new column
+      this.grid = {
+        ...this.grid,
+        columns: this.grid.columns + 1,
+        columnRatios: [...this.grid.columnRatios, 1],
+      };
+      return { row: 0, col: this.grid.columns - 1 };
+    } else {
+      // Add a new row
+      this.grid = {
+        ...this.grid,
+        rows: this.grid.rows + 1,
+        rowRatios: [...this.grid.rowRatios, 1],
+      };
+      return { row: this.grid.rows - 1, col: 0 };
+    }
   }
 }
 

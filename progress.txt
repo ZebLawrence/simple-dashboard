@@ -69,3 +69,40 @@ Added 11 tests to `src/components/add-iframe-modal.test.ts`:
 - Test for trimming whitespace from URL
 
 All 122 tests passing.
+
+### Task 5: Handle new iframe in grid - COMPLETE
+
+Implemented handling new iframes added through the modal:
+
+Updated `src/components/dashboard-app.ts`:
+- Added `@add-iframe` event listener on add-iframe-modal element
+- Implemented `_handleAddIframe()` method that:
+  - Extracts URL from event detail
+  - Generates unique ID using timestamp and random string
+  - Calculates next available grid position
+  - Creates new IframeConfig and adds to state
+  - Closes modal after adding
+- Implemented `_getNextGridPosition()` method that:
+  - Finds all occupied positions in current grid
+  - Returns first empty cell if available
+  - Expands grid if all cells are occupied:
+    - Adds column if columns <= rows (keeps grid roughly square)
+    - Adds row otherwise
+  - Updates columnRatios/rowRatios when expanding
+
+Created `src/components/dashboard-app.test.ts` with 13 tests:
+- Test for listening to add-iframe event from modal
+- Test for adding new iframe to state
+- Test for generating unique ID
+- Test for assigning correct URL from event
+- Test for assigning position to new iframe
+- Test for closing modal after adding
+- Test for rendering new iframe in grid
+- Test for expanding grid when all cells occupied
+- Test for adding column ratio when grid expands horizontally
+- Test for new column ratio defaulting to 1
+- Test for finding empty cell before expanding
+- Test for placing iframe in first available empty cell
+- Test for generating different IDs for multiple iframes
+
+All 135 tests passing.

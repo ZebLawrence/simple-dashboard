@@ -65,7 +65,7 @@
         "Expand grid if necessary (add row/column)",
         "Verify new iframe appears in grid"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

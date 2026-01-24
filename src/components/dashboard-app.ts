@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import type { IframeConfig, GridConfig } from '../types/index.js';
 import './iframe-grid.js';
 import './add-iframe-button.js';
+import './add-iframe-modal.js';
 
 @customElement('dashboard-app')
 export class DashboardApp extends LitElement {
@@ -21,6 +22,9 @@ export class DashboardApp extends LitElement {
     columnRatios: [1, 1],
     rowRatios: [1, 1],
   };
+
+  @state()
+  private modalOpen = false;
   static override styles = css`
     :host {
       display: block;
@@ -72,9 +76,18 @@ export class DashboardApp extends LitElement {
             .grid=${this.grid}
           ></iframe-grid>
         </main>
-        <add-iframe-button></add-iframe-button>
+        <add-iframe-button @add-iframe-click=${this._handleAddIframeClick}></add-iframe-button>
+        <add-iframe-modal .open=${this.modalOpen} @modal-close=${this._handleModalClose}></add-iframe-modal>
       </div>
     `;
+  }
+
+  private _handleAddIframeClick() {
+    this.modalOpen = true;
+  }
+
+  private _handleModalClose() {
+    this.modalOpen = false;
   }
 }
 

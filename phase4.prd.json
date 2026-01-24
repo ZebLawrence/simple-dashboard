@@ -39,7 +39,7 @@
         "Focus URL input when modal opens",
         "Verify modal visibility toggles correctly"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

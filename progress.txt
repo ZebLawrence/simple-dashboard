@@ -272,3 +272,42 @@ Added comprehensive tests in `src/components/add-iframe-modal.test.ts`:
 - Test for button type attributes
 
 All 100 tests passing.
+
+### Task 3: Implement modal open/close behavior - COMPLETE
+
+Implemented modal open/close behavior with the following:
+
+Updated `src/components/dashboard-app.ts`:
+- Imported add-iframe-modal component
+- Added `modalOpen` state property to track modal visibility
+- Added `<add-iframe-modal>` to render template with `.open=${this.modalOpen}` binding
+- Added `@add-iframe-click` event listener on add-iframe-button to open modal
+- Added `@modal-close` event listener on modal to close it
+- Implemented `_handleAddIframeClick()` method to set modalOpen = true
+- Implemented `_handleModalClose()` method to set modalOpen = false
+
+Updated `src/components/add-iframe-modal.ts`:
+- Added `@query('#url-input')` to get reference to URL input element
+- Added `boundHandleKeydown` property for global keyboard listener
+- Implemented `updated()` lifecycle callback to detect open state changes
+- Implemented `_onOpen()` method that:
+  - Focuses the URL input using setTimeout(0)
+  - Adds global keydown listener for Escape key
+- Implemented `_onClose()` method that removes global keydown listener
+- Implemented `_handleGlobalKeydown()` method to close on Escape key
+- Added `disconnectedCallback()` to clean up listeners when element is removed
+
+Added 11 tests to `src/components/add-iframe-modal.test.ts`:
+- Test for closing when Cancel button is clicked
+- Test for dispatching modal-close event when Cancel button is clicked
+- Test for closing when backdrop is clicked
+- Test for dispatching modal-close event when backdrop is clicked
+- Test for not closing when modal content is clicked
+- Test for closing when Escape key is pressed
+- Test for dispatching modal-close event when Escape key is pressed
+- Test for not closing on other key presses
+- Test for focusing URL input when modal opens
+- Test for removing keydown listener when modal closes
+- Test for modal-close event bubbles and is composed
+
+All 111 tests passing.

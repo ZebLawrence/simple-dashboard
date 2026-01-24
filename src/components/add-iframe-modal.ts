@@ -1,10 +1,58 @@
-import { LitElement, html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { LitElement, html, css, type PropertyValues } from 'lit';
+import { customElement, property, query } from 'lit/decorators.js';
 
 @customElement('add-iframe-modal')
 export class AddIframeModal extends LitElement {
   @property({ type: Boolean, reflect: true })
   open = false;
+
+  @query('#url-input')
+  private urlInput!: HTMLInputElement;
+
+  private boundHandleKeydown: (e: KeyboardEvent) => void;
+
+  constructor() {
+    super();
+    this.boundHandleKeydown = this._handleGlobalKeydown.bind(this);
+  }
+
+  override updated(changedProperties: PropertyValues<this>) {
+    super.updated(changedProperties);
+    if (changedProperties.has('open')) {
+      if (this.open) {
+        this._onOpen();
+      } else {
+        this._onClose();
+      }
+    }
+  }
+
+  private _onOpen() {
+    // Focus the URL input after the modal is rendered
+    // Using setTimeout(0) instead of requestAnimationFrame for better test compatibility
+    setTimeout(() => {
+      this.urlInput?.focus();
+    }, 0);
+    // Add global keydown listener for Escape key
+    document.addEventListener('keydown', this.boundHandleKeydown);
+  }
+
+  private _onClose() {
+    // Remove global keydown listener
+    document.removeEventListener('keydown', this.boundHandleKeydown);
+  }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    // Clean up any listeners when element is removed from DOM
+    document.removeEventListener('keydown', this.boundHandleKeydown);
+  }
+
+  private _handleGlobalKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      this._close();
+    }
+  }
 
   static override styles = css`
     :host {
@@ -135,7 +183,6 @@ export class AddIframeModal extends LitElement {
               id="url-input"
               type="url"
               placeholder="https://example.com"
-              @keydown=${this._handleKeydown}
             />
           </div>
           <div class="button-group">
@@ -173,12 +220,6 @@ export class AddIframeModal extends LitElement {
 
   private _handleAdd() {
     // To be implemented in task 4
-  }
-
-  private _handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
-      this._close();
-    }
   }
 
   private _close() {

@@ -70,6 +70,65 @@ describe('IframePanel', () => {
     expect(styles.height).to.not.equal('0px');
   });
 
+  describe('hover detection', () => {
+    it('isHovered is false by default', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      expect(el.isHovered).to.be.false;
+    });
+
+    it('sets isHovered to true on mouseenter', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+
+      container.dispatchEvent(new MouseEvent('mouseenter'));
+      await el.updateComplete;
+
+      expect(el.isHovered).to.be.true;
+    });
+
+    it('sets isHovered to false on mouseleave', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+
+      container.dispatchEvent(new MouseEvent('mouseenter'));
+      await el.updateComplete;
+      container.dispatchEvent(new MouseEvent('mouseleave'));
+      await el.updateComplete;
+
+      expect(el.isHovered).to.be.false;
+    });
+
+    it('adds hovered class to container on mouseenter', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+
+      container.dispatchEvent(new MouseEvent('mouseenter'));
+      await el.updateComplete;
+
+      expect(container.classList.contains('hovered')).to.be.true;
+    });
+
+    it('removes hovered class from container on mouseleave', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+
+      container.dispatchEvent(new MouseEvent('mouseenter'));
+      await el.updateComplete;
+      container.dispatchEvent(new MouseEvent('mouseleave'));
+      await el.updateComplete;
+
+      expect(container.classList.contains('hovered')).to.be.false;
+    });
+
+    it('renders hover overlay for pointer event handling', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const overlay = el.shadowRoot!.querySelector('.hover-overlay');
+      expect(overlay).to.exist;
+    });
+  });
+
   describe('hover toolbar', () => {
     it('renders a toolbar', async () => {
       const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
@@ -135,6 +194,30 @@ describe('IframePanel', () => {
       const toolbar = el.shadowRoot!.querySelector('.toolbar') as HTMLElement;
       const styles = window.getComputedStyle(toolbar);
       expect(styles.opacity).to.equal('0');
+    });
+
+    it('toolbar becomes visible when hovered', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+
+      container.dispatchEvent(new MouseEvent('mouseenter'));
+      await el.updateComplete;
+
+      const toolbar = el.shadowRoot!.querySelector('.toolbar')!;
+      expect(toolbar.classList.contains('visible')).to.be.true;
+    });
+
+    it('toolbar hides when hover ends', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+
+      container.dispatchEvent(new MouseEvent('mouseenter'));
+      await el.updateComplete;
+      container.dispatchEvent(new MouseEvent('mouseleave'));
+      await el.updateComplete;
+
+      const toolbar = el.shadowRoot!.querySelector('.toolbar')!;
+      expect(toolbar.classList.contains('visible')).to.be.false;
     });
   });
 });

@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 
 @customElement('iframe-panel')
 export class IframePanel extends LitElement {
@@ -8,6 +8,9 @@ export class IframePanel extends LitElement {
 
   @property({ type: String, attribute: 'iframe-id' })
   iframeId = '';
+
+  @state()
+  private _isHovered = false;
 
   static override styles = css`
     :host {
@@ -36,10 +39,26 @@ export class IframePanel extends LitElement {
       opacity: 0;
       transition: opacity 0.2s ease;
       z-index: 10;
+      pointer-events: none;
     }
 
-    .iframe-container:hover .toolbar {
+    .toolbar.visible {
       opacity: 1;
+      pointer-events: auto;
+    }
+
+    .hover-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .iframe-container.hovered .hover-overlay {
+      pointer-events: auto;
     }
 
     .close-button {
@@ -84,12 +103,29 @@ export class IframePanel extends LitElement {
     );
   }
 
+  private _handleMouseEnter() {
+    this._isHovered = true;
+  }
+
+  private _handleMouseLeave() {
+    this._isHovered = false;
+  }
+
+  get isHovered(): boolean {
+    return this._isHovered;
+  }
+
   override render() {
     return html`
-      <div class="iframe-container">
-        <div class="toolbar">
+      <div
+        class="iframe-container ${this._isHovered ? 'hovered' : ''}"
+        @mouseenter=${this._handleMouseEnter}
+        @mouseleave=${this._handleMouseLeave}
+      >
+        <div class="toolbar ${this._isHovered ? 'visible' : ''}">
           <button class="close-button" @click=${this._handleClose} title="Remove iframe">×</button>
         </div>
+        <div class="hover-overlay"></div>
         <iframe
           src=${this.url}
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"

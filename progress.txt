@@ -1,184 +1,27 @@
 
-### Task 3: Implement modal open/close behavior - COMPLETE
+### Phase 5 Task 1: Implement hover detection on iframe-panel - COMPLETE
 
-Implemented modal open/close behavior with the following:
-
-Updated `src/components/dashboard-app.ts`:
-- Imported add-iframe-modal component
-- Added `modalOpen` state property to track modal visibility
-- Added `<add-iframe-modal>` to render template with `.open=${this.modalOpen}` binding
-- Added `@add-iframe-click` event listener on add-iframe-button to open modal
-- Added `@modal-close` event listener on modal to close it
-- Implemented `_handleAddIframeClick()` method to set modalOpen = true
-- Implemented `_handleModalClose()` method to set modalOpen = false
-
-Updated `src/components/add-iframe-modal.ts`:
-- Added `@query('#url-input')` to get reference to URL input element
-- Added `boundHandleKeydown` property for global keyboard listener
-- Implemented `updated()` lifecycle callback to detect open state changes
-- Implemented `_onOpen()` method that:
-  - Focuses the URL input using setTimeout(0)
-  - Adds global keydown listener for Escape key
-- Implemented `_onClose()` method that removes global keydown listener
-- Implemented `_handleGlobalKeydown()` method to close on Escape key
-- Added `disconnectedCallback()` to clean up listeners when element is removed
-
-Added 11 tests to `src/components/add-iframe-modal.test.ts`:
-- Test for closing when Cancel button is clicked
-- Test for dispatching modal-close event when Cancel button is clicked
-- Test for closing when backdrop is clicked
-- Test for dispatching modal-close event when backdrop is clicked
-- Test for not closing when modal content is clicked
-- Test for closing when Escape key is pressed
-- Test for dispatching modal-close event when Escape key is pressed
-- Test for not closing on other key presses
-- Test for focusing URL input when modal opens
-- Test for removing keydown listener when modal closes
-- Test for modal-close event bubbles and is composed
-
-All 111 tests passing.
-
-### Task 4: Implement add iframe submission - COMPLETE
-
-Implemented add iframe submission with the following:
-
-Updated `src/components/add-iframe-modal.ts`:
-- Added `hasError` state property to track validation error state
-- Added `_isValidUrl()` method to validate URL format (http/https only)
-- Implemented `_handleAdd()` method that:
-  - Trims and validates the URL input
-  - Shows error state for empty or invalid URLs
-  - Dispatches `add-iframe` custom event with URL in detail
-  - Clears input field after successful add
-  - Closes modal after successful add
-- Added `_handleInput()` method to clear error state when user types
-- Added CSS for error state styling (red border, error message)
-- Added error message element below input
-
-Added 11 tests to `src/components/add-iframe-modal.test.ts`:
-- Test for dispatching add-iframe event with valid URL
-- Test for closing modal after successful add
-- Test for clearing input field after successful add
-- Test for showing error state for empty URL
-- Test for showing error state for invalid URL
-- Test for not dispatching add-iframe event for invalid URL
-- Test for clearing error state when user types
-- Test for accepting http URLs
-- Test for rejecting URLs with invalid protocols (e.g., ftp)
-- Test for add-iframe event bubbles and is composed
-- Test for trimming whitespace from URL
-
-All 122 tests passing.
-
-### Task 5: Handle new iframe in grid - COMPLETE
-
-Implemented handling new iframes added through the modal:
-
-Updated `src/components/dashboard-app.ts`:
-- Added `@add-iframe` event listener on add-iframe-modal element
-- Implemented `_handleAddIframe()` method that:
-  - Extracts URL from event detail
-  - Generates unique ID using timestamp and random string
-  - Calculates next available grid position
-  - Creates new IframeConfig and adds to state
-  - Closes modal after adding
-- Implemented `_getNextGridPosition()` method that:
-  - Finds all occupied positions in current grid
-  - Returns first empty cell if available
-  - Expands grid if all cells are occupied:
-    - Adds column if columns <= rows (keeps grid roughly square)
-    - Adds row otherwise
-  - Updates columnRatios/rowRatios when expanding
-
-Created `src/components/dashboard-app.test.ts` with 13 tests:
-- Test for listening to add-iframe event from modal
-- Test for adding new iframe to state
-- Test for generating unique ID
-- Test for assigning correct URL from event
-- Test for assigning position to new iframe
-- Test for closing modal after adding
-- Test for rendering new iframe in grid
-- Test for expanding grid when all cells occupied
-- Test for adding column ratio when grid expands horizontally
-- Test for new column ratio defaulting to 1
-- Test for finding empty cell before expanding
-- Test for placing iframe in first available empty cell
-- Test for generating different IDs for multiple iframes
-
-All 135 tests passing.
-
-### Task 6: Implement remove iframe from hover toolbar - COMPLETE
-
-Implemented the ability to remove iframes from the grid via a hover toolbar:
+Implemented proper hover detection with JavaScript state management instead of pure CSS hover:
 
 Updated `src/components/iframe-panel.ts`:
-- Added `iframeId` property (reflected as `iframe-id` attribute) to track the iframe's unique ID
-- Added a hover toolbar (`.toolbar`) positioned at top-right corner
-- Added close button with × symbol styled with red background
-- Toolbar is hidden by default (opacity: 0) and appears on hover (opacity: 1) with transition
-- Implemented `_handleClose()` method that dispatches `remove-iframe` custom event with iframe ID
-- Event is configured with `bubbles: true` and `composed: true` to propagate through shadow DOM
+- Added `_isHovered` state property to track hover state
+- Added `_handleMouseEnter()` method to set hover state to true
+- Added `_handleMouseLeave()` method to set hover state to false
+- Added `isHovered` getter for external access to hover state
+- Added mouseenter/mouseleave event listeners to iframe-container
+- Added `.hover-overlay` div for pointer event handling over iframe
+- Changed toolbar visibility from CSS `:hover` to `.visible` class based on state
+- When hovered, overlay captures pointer events so mouseleave fires correctly
+- Toolbar now uses `pointer-events: none` by default, `auto` when visible
 
-Updated `src/components/iframe-grid.ts`:
-- Modified iframe-panel rendering to pass the iframe ID via `iframe-id` attribute
+Added 8 tests to `src/components/iframe-panel.test.ts`:
+- Test for isHovered is false by default
+- Test for setting isHovered to true on mouseenter
+- Test for setting isHovered to false on mouseleave
+- Test for adding hovered class to container on mouseenter
+- Test for removing hovered class from container on mouseleave
+- Test for rendering hover overlay for pointer event handling
+- Test for toolbar becomes visible when hovered
+- Test for toolbar hides when hover ends
 
-Updated `src/components/dashboard-app.ts`:
-- Added `@remove-iframe` event listener on iframe-grid element
-- Implemented `_handleRemoveIframe()` method that:
-  - Extracts the iframe ID from event detail
-  - Filters the iframe out of the iframes state array
-  - Triggers re-render with updated state
-
-Added 9 tests to `src/components/iframe-panel.test.ts`:
-- Test for default empty iframeId
-- Test for rendering with provided iframeId
-- Test for rendering toolbar
-- Test for rendering close button in toolbar
-- Test for close button having × symbol
-- Test for dispatching remove-iframe event when close button is clicked
-- Test for remove-iframe event including the iframe ID
-- Test for remove-iframe event bubbles and is composed
-- Test for toolbar being hidden by default (opacity 0)
-
-Added 6 tests to `src/components/dashboard-app.test.ts`:
-- Test for listening to remove-iframe event from iframe-grid
-- Test for removing iframe from state
-- Test for removing correct iframe by ID
-- Test for keeping other iframes when one is removed
-- Test for doing nothing when removing non-existent ID
-- Test for iframe disappearing from rendered grid after removal
-
-All 150 tests passing.
-
-### Task 7: Handle grid reflow after remove - COMPLETE
-
-Implemented grid reflow functionality to handle removing iframes and maintaining a clean grid layout:
-
-Updated `src/components/dashboard-app.ts`:
-- Modified `_handleRemoveIframe()` method to call `_reflowGrid()` after removing an iframe
-- Added `_reflowGrid()` method that:
-  - Handles empty grid state (resets to 1x1)
-  - Sorts remaining iframes by their current position (row-major order)
-  - Calculates optimal grid dimensions using `_calculateOptimalGridDimensions()`
-  - Reassigns iframe positions in row-major order to fill gaps
-  - Adjusts column and row ratios using `_calculateNewRatios()`
-- Added `_calculateOptimalGridDimensions()` method that:
-  - Calculates a roughly square grid based on iframe count
-  - Uses square root to determine optimal dimensions
-  - Ensures sufficient cells for all iframes
-- Added `_calculateNewRatios()` method that:
-  - Keeps existing ratios when shrinking (takes first N ratios)
-  - Adds new ratios with value 1 when expanding
-
-Added 9 tests to `src/components/dashboard-app.test.ts`:
-- Test for repositioning remaining iframes to fill gaps
-- Test for shrinking grid when row becomes empty
-- Test for shrinking grid when column becomes empty
-- Test for adjusting column ratios when columns shrink
-- Test for adjusting row ratios when rows shrink
-- Test for leaving no gaps in grid layout
-- Test for handling removing all iframes gracefully
-- Test for grid displaying correctly after removal
-- Test for maintaining iframe order after reflow
-
-All 159 tests passing.
+All 167 tests passing.

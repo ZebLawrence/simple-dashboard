@@ -13,7 +13,7 @@
         "Handle pointer events over iframe element",
         "Verify hover state toggles on mouse enter/leave"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

@@ -78,7 +78,7 @@
         "Optionally clear corrupted data",
         "Log error for debugging"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

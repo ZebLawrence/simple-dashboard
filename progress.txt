@@ -154,3 +154,34 @@ Completed: 2026-01-24
 - User can add their first panel via the + button in bottom right
 - State is persisted via auto-save, so returning users see their previous session
 - Next task: "Handle corrupted storage data" (already partially implemented in StorageService)
+
+## Phase 6, Task 6: Handle corrupted storage data
+
+Completed: 2026-01-24
+
+### What was done:
+- Verified that corrupted storage handling was already fully implemented in Task 1
+- The StorageService.load() method already:
+  - Uses try/catch for JSON parse errors (returns null and clears storage)
+  - Validates expected properties exist via isValidWorkspaceState()
+  - Validates data types are correct via isValidIframeConfig() and isValidGridConfig()
+  - Falls back to default state on error (returns null)
+  - Clears corrupted data via this.clear()
+  - Logs errors for debugging via console.error()
+
+### Tests:
+- Existing tests in storage-service.test.ts already cover all corrupted data scenarios:
+  - Invalid JSON parsing
+  - Missing iframes array
+  - Missing grid config
+  - Invalid iframe config (empty id, missing position)
+  - Invalid grid config (wrong ratio lengths)
+  - Negative position values
+  - Zero or negative ratios
+  - Non-numeric ratios
+- All 287 tests pass
+
+### Notes for next person:
+- Phase 6 (Persistence) is now COMPLETE! All 6 tasks pass.
+- The storage service handles all edge cases for corrupted data gracefully
+- When corrupted data is detected, it's cleared and the app starts fresh with default state

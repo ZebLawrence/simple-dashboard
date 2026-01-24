@@ -13,7 +13,7 @@
         "Position divider at grid cell boundaries",
         "Verify dividers appear between iframe panels"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

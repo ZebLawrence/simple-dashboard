@@ -67,7 +67,7 @@ describe('IframeGrid', () => {
     expect((panels[1] as any).url).to.equal('https://example.com/2');
   });
 
-  it('sets grid-template-columns based on columnRatios', async () => {
+  it('sets grid-template-columns based on columnRatios with divider tracks', async () => {
     const customGrid: GridConfig = {
       columns: 3,
       rows: 1,
@@ -77,10 +77,11 @@ describe('IframeGrid', () => {
     const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
 
     const container = el.shadowRoot!.querySelector('.grid-container') as HTMLElement;
-    expect(container.style.gridTemplateColumns).to.equal('1fr 2fr 1fr');
+    // Divider tracks (4px) are interleaved between column ratios
+    expect(container.style.gridTemplateColumns).to.equal('1fr 4px 2fr 4px 1fr');
   });
 
-  it('sets grid-template-rows based on rowRatios', async () => {
+  it('sets grid-template-rows based on rowRatios with divider tracks', async () => {
     const customGrid: GridConfig = {
       columns: 1,
       rows: 3,
@@ -90,7 +91,8 @@ describe('IframeGrid', () => {
     const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
 
     const container = el.shadowRoot!.querySelector('.grid-container') as HTMLElement;
-    expect(container.style.gridTemplateRows).to.equal('1fr 3fr 1fr');
+    // Divider tracks (4px) are interleaved between row ratios
+    expect(container.style.gridTemplateRows).to.equal('1fr 4px 3fr 4px 1fr');
   });
 
   it('renders empty iframe-panel for positions without iframe config', async () => {
@@ -103,5 +105,60 @@ describe('IframeGrid', () => {
     expect(panels.length).to.equal(4);
     expect((panels[0] as any).url).to.equal('https://example.com/1');
     expect((panels[1] as any).url).to.equal('');
+  });
+
+  it('renders vertical dividers between columns', async () => {
+    const customGrid: GridConfig = {
+      columns: 3,
+      rows: 2,
+      columnRatios: [1, 1, 1],
+      rowRatios: [1, 1],
+    };
+    const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+    const verticalDividers = el.shadowRoot!.querySelectorAll('grid-divider[orientation="vertical"]');
+    // 3 columns = 2 vertical dividers
+    expect(verticalDividers.length).to.equal(2);
+  });
+
+  it('renders horizontal dividers between rows', async () => {
+    const customGrid: GridConfig = {
+      columns: 2,
+      rows: 3,
+      columnRatios: [1, 1],
+      rowRatios: [1, 1, 1],
+    };
+    const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+    const horizontalDividers = el.shadowRoot!.querySelectorAll('grid-divider[orientation="horizontal"]');
+    // 3 rows = 2 horizontal dividers
+    expect(horizontalDividers.length).to.equal(2);
+  });
+
+  it('renders no dividers for 1x1 grid', async () => {
+    const customGrid: GridConfig = {
+      columns: 1,
+      rows: 1,
+      columnRatios: [1],
+      rowRatios: [1],
+    };
+    const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+    const dividers = el.shadowRoot!.querySelectorAll('grid-divider');
+    expect(dividers.length).to.equal(0);
+  });
+
+  it('sets correct index on dividers', async () => {
+    const customGrid: GridConfig = {
+      columns: 3,
+      rows: 1,
+      columnRatios: [1, 1, 1],
+      rowRatios: [1],
+    };
+    const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+    const verticalDividers = el.shadowRoot!.querySelectorAll('grid-divider[orientation="vertical"]');
+    expect((verticalDividers[0] as any).index).to.equal(0);
+    expect((verticalDividers[1] as any).index).to.equal(1);
   });
 });

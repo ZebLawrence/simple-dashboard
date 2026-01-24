@@ -55,7 +55,7 @@
         "Create playwright.config.ts",
         "Create a sample e2e test and verify it runs"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "setup",

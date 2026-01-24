@@ -124,3 +124,35 @@ Added 5 tests to `src/components/iframe-grid.test.ts`:
 - Test for iframe panels resizing visually during drag
 
 All 55 tests passing.
+
+### Task 5: Implement mouseup drag end - COMPLETE
+
+Implemented mouseup drag end handling in `src/components/iframe-grid.ts`:
+
+- Added `boundHandleMouseUp` property to store the bound mouseup handler reference
+- Added document-level mouseup listener in `handleDragStart()` method alongside the mousemove listener
+- Implemented `handleMouseUp()` method that:
+  - Returns early if no active drag state
+  - Dispatches `grid-drag-complete` custom event with final orientation, index, columnRatios, and rowRatios
+  - Calls `clearDragState()` to clean up
+- Added `removeMouseUpListener()` method to clean up the document mouseup listener
+- Updated `clearDragState()` to call both `removeMouseMoveListener()` and `removeMouseUpListener()`
+
+The drag lifecycle is now complete:
+1. `mousedown` on divider → `handleDragStart()` → sets drag state, adds listeners, dispatches `grid-drag-start`
+2. `mousemove` on document → `handleMouseMove()` → updates ratios, dispatches `ratio-change`
+3. `mouseup` on document → `handleMouseUp()` → dispatches `grid-drag-complete`, calls `clearDragState()`
+
+Added 10 tests to `src/components/iframe-grid.test.ts`:
+- Test for adding mouseup listener to document on drag start
+- Test for removing mousemove listener on mouseup
+- Test for removing mouseup listener on mouseup
+- Test for clearing drag state on mouseup
+- Test for removing divider dragging class on mouseup
+- Test for dispatching grid-drag-complete event on mouseup
+- Test for finalizing ratio values in grid-drag-complete event
+- Test for ratios persisting after drag ends
+- Test for not dispatching grid-drag-complete when no drag is active
+- Test for full drag cycle (start → change → complete event sequence)
+
+All 65 tests passing.

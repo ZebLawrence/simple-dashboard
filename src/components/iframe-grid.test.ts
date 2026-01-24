@@ -667,4 +667,216 @@ describe('IframeGrid', () => {
       el.clearDragState();
     });
   });
+
+  describe('mouseup drag end', () => {
+    it('adds mouseup listener to document on drag start', async () => {
+      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+
+      // The boundHandleMouseUp should be set
+      expect((el as any).boundHandleMouseUp).to.not.be.null;
+
+      el.clearDragState();
+    });
+
+    it('removes mousemove listener on mouseup', async () => {
+      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+
+      expect((el as any).boundHandleMouseMove).to.not.be.null;
+
+      // Simulate mouseup
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 200 }));
+
+      expect((el as any).boundHandleMouseMove).to.be.null;
+    });
+
+    it('removes mouseup listener on mouseup', async () => {
+      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+
+      expect((el as any).boundHandleMouseUp).to.not.be.null;
+
+      // Simulate mouseup
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 200 }));
+
+      expect((el as any).boundHandleMouseUp).to.be.null;
+    });
+
+    it('clears drag state on mouseup', async () => {
+      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+
+      expect(el.getDragState()).to.not.be.null;
+
+      // Simulate mouseup
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 200 }));
+
+      expect(el.getDragState()).to.be.null;
+    });
+
+    it('removes divider dragging class on mouseup', async () => {
+      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+
+      expect(dividerInner.classList.contains('dragging')).to.be.true;
+
+      // Simulate mouseup
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 200 }));
+
+      expect(dividerInner.classList.contains('dragging')).to.be.false;
+    });
+
+    it('dispatches grid-drag-complete event on mouseup', async () => {
+      const customGrid: GridConfig = {
+        columns: 2,
+        rows: 1,
+        columnRatios: [1, 1],
+        rowRatios: [1],
+      };
+      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+      let dragCompleteEvent: CustomEvent | null = null;
+      el.addEventListener('grid-drag-complete', ((e: CustomEvent) => {
+        dragCompleteEvent = e;
+      }) as EventListener);
+
+      // Start drag
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+
+      // Move to change ratios
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
+
+      // End drag
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 50 }));
+
+      expect(dragCompleteEvent).to.not.be.null;
+      expect(dragCompleteEvent!.detail.orientation).to.equal('vertical');
+      expect(dragCompleteEvent!.detail.index).to.equal(0);
+      expect(dragCompleteEvent!.detail.columnRatios).to.be.an('array');
+      expect(dragCompleteEvent!.detail.rowRatios).to.be.an('array');
+    });
+
+    it('finalizes ratio values in grid-drag-complete event', async () => {
+      const customGrid: GridConfig = {
+        columns: 2,
+        rows: 1,
+        columnRatios: [1, 1],
+        rowRatios: [1],
+      };
+      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+      let dragCompleteEvent: CustomEvent | null = null;
+      el.addEventListener('grid-drag-complete', ((e: CustomEvent) => {
+        dragCompleteEvent = e;
+      }) as EventListener);
+
+      // Start drag
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+
+      // Move to change ratios
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
+
+      // End drag
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 50 }));
+
+      // The final ratios should match the current grid ratios
+      expect(dragCompleteEvent!.detail.columnRatios).to.deep.equal(el.grid.columnRatios);
+      expect(dragCompleteEvent!.detail.rowRatios).to.deep.equal(el.grid.rowRatios);
+    });
+
+    it('ratios persist after drag ends', async () => {
+      const customGrid: GridConfig = {
+        columns: 2,
+        rows: 1,
+        columnRatios: [1, 1],
+        rowRatios: [1],
+      };
+      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+      // Start drag
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+
+      // Move to change ratios
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
+
+      // Capture ratios before mouseup
+      const ratiosBefore = [...el.grid.columnRatios];
+
+      // End drag
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 50 }));
+
+      // Ratios should persist after drag ends
+      expect(el.grid.columnRatios).to.deep.equal(ratiosBefore);
+    });
+
+    it('does not dispatch grid-drag-complete when no drag is active', async () => {
+      const el = await fixture<IframeGrid>(html`<iframe-grid></iframe-grid>`);
+
+      let dragCompleteEvent: CustomEvent | null = null;
+      el.addEventListener('grid-drag-complete', ((e: CustomEvent) => {
+        dragCompleteEvent = e;
+      }) as EventListener);
+
+      // Simulate mouseup without starting drag
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 200 }));
+
+      expect(dragCompleteEvent).to.be.null;
+    });
+
+    it('drag ends cleanly with full cycle', async () => {
+      const customGrid: GridConfig = {
+        columns: 2,
+        rows: 1,
+        columnRatios: [1, 1],
+        rowRatios: [1],
+      };
+      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+      const events: string[] = [];
+      el.addEventListener('grid-drag-start', () => events.push('start'));
+      el.addEventListener('ratio-change', () => events.push('change'));
+      el.addEventListener('grid-drag-complete', () => events.push('complete'));
+
+      // Start drag
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+
+      // Move
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
+
+      // End drag
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 50 }));
+
+      // Verify event sequence
+      expect(events).to.deep.equal(['start', 'change', 'complete']);
+
+      // Verify all state is cleaned up
+      expect(el.getDragState()).to.be.null;
+      expect((el as any).boundHandleMouseMove).to.be.null;
+      expect((el as any).boundHandleMouseUp).to.be.null;
+    });
+  });
 });

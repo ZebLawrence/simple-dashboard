@@ -65,7 +65,7 @@
         "Dispatch drag-complete event",
         "Verify drag ends cleanly and ratios persist"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

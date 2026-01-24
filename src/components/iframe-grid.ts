@@ -178,6 +178,10 @@ export class IframeGrid extends LitElement {
     this.boundHandleMouseMove = this.handleMouseMove.bind(this);
     document.addEventListener('mousemove', this.boundHandleMouseMove);
 
+    // Add document-level mouseup listener for drag end
+    this.boundHandleMouseUp = this.handleMouseUp.bind(this);
+    document.addEventListener('mouseup', this.boundHandleMouseUp);
+
     this.dispatchEvent(
       new CustomEvent('grid-drag-start', {
         bubbles: true,
@@ -193,6 +197,7 @@ export class IframeGrid extends LitElement {
   }
 
   private boundHandleMouseMove: ((event: MouseEvent) => void) | null = null;
+  private boundHandleMouseUp: ((event: MouseEvent) => void) | null = null;
 
   private handleMouseMove(event: MouseEvent) {
     if (!this.dragState || !this.dragState.active) {
@@ -285,10 +290,40 @@ export class IframeGrid extends LitElement {
     }
   }
 
+  private handleMouseUp(_event: MouseEvent) {
+    if (!this.dragState || !this.dragState.active) {
+      return;
+    }
+
+    // Dispatch drag-complete event with final ratios
+    this.dispatchEvent(
+      new CustomEvent('grid-drag-complete', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          orientation: this.dragState.orientation,
+          index: this.dragState.index,
+          columnRatios: [...this.grid.columnRatios],
+          rowRatios: [...this.grid.rowRatios],
+        },
+      })
+    );
+
+    // Clear drag state (removes listeners and visual feedback)
+    this.clearDragState();
+  }
+
   removeMouseMoveListener() {
     if (this.boundHandleMouseMove) {
       document.removeEventListener('mousemove', this.boundHandleMouseMove);
       this.boundHandleMouseMove = null;
+    }
+  }
+
+  removeMouseUpListener() {
+    if (this.boundHandleMouseUp) {
+      document.removeEventListener('mouseup', this.boundHandleMouseUp);
+      this.boundHandleMouseUp = null;
     }
   }
 
@@ -304,6 +339,7 @@ export class IframeGrid extends LitElement {
       });
     }
     this.removeMouseMoveListener();
+    this.removeMouseUpListener();
     this.dragState = null;
   }
 }

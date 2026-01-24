@@ -6,15 +6,15 @@ test.describe('Simple Dashboard', () => {
     await expect(page).toHaveTitle('Simple Dashboard');
   });
 
-  test('renders test-element component', async ({ page }) => {
+  test('renders dashboard-app component', async ({ page }) => {
     await page.goto('/');
-    const testElement = page.locator('test-element');
-    await expect(testElement).toBeVisible();
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
   });
 
-  test('test-element displays greeting', async ({ page }) => {
+  test('dashboard-app displays header', async ({ page }) => {
     await page.goto('/');
-    const testElement = page.locator('test-element');
-    await expect(testElement).toContainText('Hello, Vite + Lit!');
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toContainText('Simple Dashboard');
   });
 });

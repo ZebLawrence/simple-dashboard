@@ -1,8 +1,25 @@
 import { LitElement, html, css } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
+import type { IframeConfig, GridConfig } from '../types/index.js';
+import './iframe-grid.js';
 
 @customElement('dashboard-app')
 export class DashboardApp extends LitElement {
+  @state()
+  private iframes: IframeConfig[] = [
+    { id: 'iframe-1', url: 'https://example.com', position: { row: 0, col: 0 } },
+    { id: 'iframe-2', url: 'https://example.org', position: { row: 0, col: 1 } },
+    { id: 'iframe-3', url: 'https://example.net', position: { row: 1, col: 0 } },
+    { id: 'iframe-4', url: 'https://example.edu', position: { row: 1, col: 1 } },
+  ];
+
+  @state()
+  private grid: GridConfig = {
+    columns: 2,
+    rows: 2,
+    columnRatios: [1, 1],
+    rowRatios: [1, 1],
+  };
   static override styles = css`
     :host {
       display: block;
@@ -49,7 +66,10 @@ export class DashboardApp extends LitElement {
           <h1>Simple Dashboard</h1>
         </header>
         <main class="dashboard-content">
-          <slot></slot>
+          <iframe-grid
+            .iframes=${this.iframes}
+            .grid=${this.grid}
+          ></iframe-grid>
         </main>
       </div>
     `;

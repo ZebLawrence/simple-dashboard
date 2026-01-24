@@ -51,7 +51,7 @@
         "Verify all four iframes are visible",
         "Check that grid fills viewport correctly"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

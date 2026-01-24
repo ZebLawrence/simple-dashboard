@@ -32,10 +32,13 @@ export class IframePanel extends LitElement {
     .toolbar {
       position: absolute;
       top: 0;
+      left: 0;
       right: 0;
-      padding: 4px;
+      padding: 8px;
       display: flex;
+      justify-content: flex-end;
       gap: 4px;
+      background-color: rgba(15, 52, 96, 0.85);
       opacity: 0;
       transition: opacity 0.2s ease;
       z-index: 10;

@@ -25,3 +25,18 @@ Added 8 tests to `src/components/iframe-panel.test.ts`:
 - Test for toolbar hides when hover ends
 
 All 167 tests passing.
+
+### Phase 5 Task 2: Create toolbar overlay UI - COMPLETE
+
+Updated toolbar styling in `src/components/iframe-panel.ts`:
+- Added semi-transparent dark background (rgba(15, 52, 96, 0.85))
+- Toolbar now spans full width at top of panel (left: 0, right: 0)
+- Increased padding to 8px for better visual appearance
+- Added justify-content: flex-end to keep close button on right side
+- Smooth fade-in transition was already in place (opacity 0.2s ease)
+
+Added 2 tests to `src/components/iframe-panel.test.ts`:
+- Test for toolbar having semi-transparent dark background
+- Test for toolbar spanning full width at top of panel (position absolute, top/left/right: 0)
+
+All 169 tests passing.

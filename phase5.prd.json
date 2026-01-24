@@ -26,7 +26,7 @@
         "Add smooth fade-in transition",
         "Verify toolbar appears on hover"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

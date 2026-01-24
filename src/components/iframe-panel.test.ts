@@ -196,6 +196,25 @@ describe('IframePanel', () => {
       expect(styles.opacity).to.equal('0');
     });
 
+    it('toolbar has semi-transparent dark background', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const toolbar = el.shadowRoot!.querySelector('.toolbar') as HTMLElement;
+      const styles = window.getComputedStyle(toolbar);
+      expect(styles.backgroundColor).to.match(/rgba?\(/);
+    });
+
+    it('toolbar spans full width at top of panel', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const toolbar = el.shadowRoot!.querySelector('.toolbar') as HTMLElement;
+      const styles = window.getComputedStyle(toolbar);
+      expect(styles.position).to.equal('absolute');
+      expect(styles.top).to.equal('0px');
+      expect(styles.left).to.equal('0px');
+      expect(styles.right).to.equal('0px');
+    });
+
     it('toolbar becomes visible when hovered', async () => {
       const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
       const container = el.shadowRoot!.querySelector('.iframe-container')!;

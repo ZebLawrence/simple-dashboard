@@ -39,7 +39,7 @@
         "Set grid-template-columns and grid-template-rows",
         "Verify multiple iframes display in grid layout"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

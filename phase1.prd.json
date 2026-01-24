@@ -68,7 +68,7 @@
         "Create src/index.ts entry point",
         "Verify all directories are in place"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

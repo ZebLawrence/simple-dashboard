@@ -106,3 +106,46 @@ Created `src/components/dashboard-app.test.ts` with 13 tests:
 - Test for generating different IDs for multiple iframes
 
 All 135 tests passing.
+
+### Task 6: Implement remove iframe from hover toolbar - COMPLETE
+
+Implemented the ability to remove iframes from the grid via a hover toolbar:
+
+Updated `src/components/iframe-panel.ts`:
+- Added `iframeId` property (reflected as `iframe-id` attribute) to track the iframe's unique ID
+- Added a hover toolbar (`.toolbar`) positioned at top-right corner
+- Added close button with × symbol styled with red background
+- Toolbar is hidden by default (opacity: 0) and appears on hover (opacity: 1) with transition
+- Implemented `_handleClose()` method that dispatches `remove-iframe` custom event with iframe ID
+- Event is configured with `bubbles: true` and `composed: true` to propagate through shadow DOM
+
+Updated `src/components/iframe-grid.ts`:
+- Modified iframe-panel rendering to pass the iframe ID via `iframe-id` attribute
+
+Updated `src/components/dashboard-app.ts`:
+- Added `@remove-iframe` event listener on iframe-grid element
+- Implemented `_handleRemoveIframe()` method that:
+  - Extracts the iframe ID from event detail
+  - Filters the iframe out of the iframes state array
+  - Triggers re-render with updated state
+
+Added 9 tests to `src/components/iframe-panel.test.ts`:
+- Test for default empty iframeId
+- Test for rendering with provided iframeId
+- Test for rendering toolbar
+- Test for rendering close button in toolbar
+- Test for close button having × symbol
+- Test for dispatching remove-iframe event when close button is clicked
+- Test for remove-iframe event including the iframe ID
+- Test for remove-iframe event bubbles and is composed
+- Test for toolbar being hidden by default (opacity 0)
+
+Added 6 tests to `src/components/dashboard-app.test.ts`:
+- Test for listening to remove-iframe event from iframe-grid
+- Test for removing iframe from state
+- Test for removing correct iframe by ID
+- Test for keeping other iframes when one is removed
+- Test for doing nothing when removing non-existent ID
+- Test for iframe disappearing from rendered grid after removal
+
+All 150 tests passing.

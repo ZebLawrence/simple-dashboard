@@ -1,5 +1,5 @@
 import { html } from 'lit';
-import { fixture, expect } from '@open-wc/testing';
+import { fixture, expect, oneEvent } from '@open-wc/testing';
 import './iframe-panel.js';
 import type { IframePanel } from './iframe-panel.js';
 
@@ -8,6 +8,19 @@ describe('IframePanel', () => {
     const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
 
     expect(el.url).to.equal('');
+  });
+
+  it('renders with default empty iframeId', async () => {
+    const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+    expect(el.iframeId).to.equal('');
+  });
+
+  it('renders with provided iframeId', async () => {
+    const testId = 'iframe-123';
+    const el = await fixture<IframePanel>(html`<iframe-panel iframe-id=${testId}></iframe-panel>`);
+
+    expect(el.iframeId).to.equal(testId);
   });
 
   it('renders with provided url', async () => {
@@ -55,5 +68,73 @@ describe('IframePanel', () => {
     const styles = window.getComputedStyle(container);
     expect(styles.width).to.not.equal('0px');
     expect(styles.height).to.not.equal('0px');
+  });
+
+  describe('hover toolbar', () => {
+    it('renders a toolbar', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const toolbar = el.shadowRoot!.querySelector('.toolbar');
+      expect(toolbar).to.exist;
+    });
+
+    it('renders a close button in the toolbar', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const closeButton = el.shadowRoot!.querySelector('.close-button');
+      expect(closeButton).to.exist;
+    });
+
+    it('close button has × symbol', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const closeButton = el.shadowRoot!.querySelector('.close-button')!;
+      expect(closeButton.textContent).to.equal('×');
+    });
+
+    it('dispatches remove-iframe event when close button is clicked', async () => {
+      const testId = 'iframe-456';
+      const el = await fixture<IframePanel>(html`<iframe-panel iframe-id=${testId}></iframe-panel>`);
+
+      const closeButton = el.shadowRoot!.querySelector('.close-button') as HTMLButtonElement;
+
+      setTimeout(() => closeButton.click());
+      const event = await oneEvent(el, 'remove-iframe');
+
+      expect(event).to.exist;
+    });
+
+    it('remove-iframe event includes the iframe id', async () => {
+      const testId = 'iframe-789';
+      const el = await fixture<IframePanel>(html`<iframe-panel iframe-id=${testId}></iframe-panel>`);
+
+      const closeButton = el.shadowRoot!.querySelector('.close-button') as HTMLButtonElement;
+
+      setTimeout(() => closeButton.click());
+      const event = await oneEvent(el, 'remove-iframe') as CustomEvent<{ id: string }>;
+
+      expect(event.detail.id).to.equal(testId);
+    });
+
+    it('remove-iframe event bubbles and is composed', async () => {
+      const testId = 'iframe-bubbles';
+      const el = await fixture<IframePanel>(html`<iframe-panel iframe-id=${testId}></iframe-panel>`);
+
+      const closeButton = el.shadowRoot!.querySelector('.close-button') as HTMLButtonElement;
+
+      setTimeout(() => closeButton.click());
+      const event = await oneEvent(el, 'remove-iframe') as CustomEvent;
+
+      expect(event.bubbles).to.be.true;
+      expect(event.composed).to.be.true;
+    });
+
+    it('toolbar is hidden by default (opacity 0)', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const toolbar = el.shadowRoot!.querySelector('.toolbar') as HTMLElement;
+      const styles = window.getComputedStyle(toolbar);
+      expect(styles.opacity).to.equal('0');
+    });
   });
 });

@@ -264,4 +264,104 @@ describe('DashboardApp', () => {
       expect(newIframes[0].id).to.not.equal(newIframes[1].id);
     });
   });
+
+  describe('remove iframe from hover toolbar', () => {
+    it('listens for remove-iframe event from iframe-grid', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid');
+      expect(grid).to.exist;
+    });
+
+    it('removes iframe from state when remove-iframe event is dispatched', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const initialIframeCount = (el as any).iframes.length;
+      const iframeToRemove = (el as any).iframes[0];
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToRemove.id },
+      }));
+      await el.updateComplete;
+
+      expect((el as any).iframes.length).to.equal(initialIframeCount - 1);
+    });
+
+    it('removes correct iframe by id', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const iframeToRemove = (el as any).iframes[1];
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToRemove.id },
+      }));
+      await el.updateComplete;
+
+      const remainingIframes = (el as any).iframes;
+      const iframeStillExists = remainingIframes.some((iframe: any) => iframe.id === iframeToRemove.id);
+      expect(iframeStillExists).to.be.false;
+    });
+
+    it('keeps other iframes when one is removed', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const iframes = (el as any).iframes;
+      const iframeToRemove = iframes[0];
+      const iframesToKeep = iframes.slice(1);
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToRemove.id },
+      }));
+      await el.updateComplete;
+
+      const remainingIframes = (el as any).iframes;
+      for (const iframe of iframesToKeep) {
+        const exists = remainingIframes.some((remaining: any) => remaining.id === iframe.id);
+        expect(exists).to.be.true;
+      }
+    });
+
+    it('does nothing when removing non-existent iframe id', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const initialIframeCount = (el as any).iframes.length;
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: 'non-existent-id' },
+      }));
+      await el.updateComplete;
+
+      expect((el as any).iframes.length).to.equal(initialIframeCount);
+    });
+
+    it('iframe disappears from rendered grid after removal', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const iframeToRemove = (el as any).iframes[0];
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToRemove.id },
+      }));
+      await el.updateComplete;
+
+      const gridIframes = (grid as any).iframes;
+      const iframeStillInGrid = gridIframes.some((iframe: any) => iframe.id === iframeToRemove.id);
+      expect(iframeStillInGrid).to.be.false;
+    });
+  });
 });

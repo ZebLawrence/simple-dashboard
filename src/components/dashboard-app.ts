@@ -74,6 +74,7 @@ export class DashboardApp extends LitElement {
           <iframe-grid
             .iframes=${this.iframes}
             .grid=${this.grid}
+            @remove-iframe=${this._handleRemoveIframe}
           ></iframe-grid>
         </main>
         <add-iframe-button @add-iframe-click=${this._handleAddIframeClick}></add-iframe-button>
@@ -111,6 +112,11 @@ export class DashboardApp extends LitElement {
 
     // Close modal
     this.modalOpen = false;
+  }
+
+  private _handleRemoveIframe(event: CustomEvent<{ id: string }>) {
+    const { id } = event.detail;
+    this.iframes = this.iframes.filter(iframe => iframe.id !== id);
   }
 
   private _getNextGridPosition(): { row: number; col: number } {

@@ -78,7 +78,7 @@
         "Remove iframe from state array",
         "Verify iframe disappears from grid"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

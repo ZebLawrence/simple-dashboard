@@ -117,6 +117,7 @@ export class IframeGrid extends LitElement {
         cells.push(html`
           <iframe-panel
             url=${iframe?.url ?? ''}
+            iframe-id=${iframe?.id ?? ''}
             style="grid-row: ${actualRow}; grid-column: ${actualCol};"
           ></iframe-panel>
         `);

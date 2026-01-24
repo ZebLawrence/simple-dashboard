@@ -26,7 +26,7 @@
         "Add sandbox and allow attributes for security",
         "Verify iframe loads external URL correctly"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

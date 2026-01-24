@@ -76,6 +76,8 @@ export class DashboardApp extends LitElement {
             .iframes=${this.iframes}
             .grid=${this.grid}
             @remove-iframe=${this._handleRemoveIframe}
+            @url-changed=${this._handleUrlChanged}
+            @grid-drag-complete=${this._handleGridDragComplete}
           ></iframe-grid>
         </main>
         <add-iframe-button @add-iframe-click=${this._handleAddIframeClick}></add-iframe-button>
@@ -113,6 +115,9 @@ export class DashboardApp extends LitElement {
 
     // Close modal
     this.modalOpen = false;
+
+    // Auto-save after adding iframe
+    this.saveState();
   }
 
   private _handleRemoveIframe(event: CustomEvent<{ id: string }>) {
@@ -125,6 +130,9 @@ export class DashboardApp extends LitElement {
 
     // Reflow the grid
     this._reflowGrid(remainingIframes);
+
+    // Auto-save after removing iframe
+    this.saveState();
   }
 
   private _reflowGrid(iframes: IframeConfig[]) {
@@ -251,6 +259,32 @@ export class DashboardApp extends LitElement {
   override connectedCallback() {
     super.connectedCallback();
     this.loadState();
+  }
+
+  private _handleUrlChanged(event: CustomEvent<{ id: string; url: string }>) {
+    const { id, url } = event.detail;
+
+    // Update the iframe URL in state
+    this.iframes = this.iframes.map(iframe =>
+      iframe.id === id ? { ...iframe, url } : iframe
+    );
+
+    // Auto-save after editing iframe URL
+    this.saveState();
+  }
+
+  private _handleGridDragComplete(event: CustomEvent<{ columnRatios: number[]; rowRatios: number[] }>) {
+    const { columnRatios, rowRatios } = event.detail;
+
+    // Update grid ratios from the event (the iframe-grid already updated its local state)
+    this.grid = {
+      ...this.grid,
+      columnRatios,
+      rowRatios,
+    };
+
+    // Auto-save after resizing grid (debounced via grid-drag-complete instead of ratio-change)
+    this.saveState();
   }
 
   private _getNextGridPosition(): { row: number; col: number } {

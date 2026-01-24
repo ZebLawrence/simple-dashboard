@@ -39,7 +39,7 @@
         "Debounce rapid changes (e.g., during drag)",
         "Verify state saved after each action"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

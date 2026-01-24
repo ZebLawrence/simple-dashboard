@@ -780,6 +780,241 @@ describe('DashboardApp', () => {
     });
   });
 
+  describe('auto-save on changes', () => {
+    beforeEach(() => {
+      localStorage.removeItem('dashboard-workspace-state');
+    });
+
+    afterEach(() => {
+      localStorage.removeItem('dashboard-workspace-state');
+    });
+
+    it('calls save after adding iframe', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+      localStorage.removeItem('dashboard-workspace-state');
+
+      const modal = el.shadowRoot!.querySelector('add-iframe-modal')!;
+      modal.dispatchEvent(new CustomEvent('add-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { url: 'https://auto-saved.com' },
+      }));
+      await el.updateComplete;
+
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      expect(stored).to.not.be.null;
+
+      const parsed = JSON.parse(stored!);
+      const hasNewUrl = parsed.iframes.some((iframe: any) => iframe.url === 'https://auto-saved.com');
+      expect(hasNewUrl).to.be.true;
+    });
+
+    it('calls save after removing iframe', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+      localStorage.removeItem('dashboard-workspace-state');
+
+      const initialCount = (el as any).iframes.length;
+      const iframeToRemove = (el as any).iframes[0];
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToRemove.id },
+      }));
+      await el.updateComplete;
+
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      expect(stored).to.not.be.null;
+
+      const parsed = JSON.parse(stored!);
+      expect(parsed.iframes.length).to.equal(initialCount - 1);
+    });
+
+    it('calls save after editing iframe URL', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+      localStorage.removeItem('dashboard-workspace-state');
+
+      const iframeToEdit = (el as any).iframes[0];
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+
+      grid.dispatchEvent(new CustomEvent('url-changed', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToEdit.id, url: 'https://edited-url.com' },
+      }));
+      await el.updateComplete;
+
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      expect(stored).to.not.be.null;
+
+      const parsed = JSON.parse(stored!);
+      const editedIframe = parsed.iframes.find((iframe: any) => iframe.id === iframeToEdit.id);
+      expect(editedIframe.url).to.equal('https://edited-url.com');
+    });
+
+    it('updates iframe URL in state after url-changed event', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const iframeToEdit = (el as any).iframes[0];
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+
+      grid.dispatchEvent(new CustomEvent('url-changed', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToEdit.id, url: 'https://new-url.com' },
+      }));
+      await el.updateComplete;
+
+      const updatedIframe = (el as any).iframes.find((iframe: any) => iframe.id === iframeToEdit.id);
+      expect(updatedIframe.url).to.equal('https://new-url.com');
+    });
+
+    it('calls save after resizing grid', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+      localStorage.removeItem('dashboard-workspace-state');
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('grid-drag-complete', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          orientation: 'vertical',
+          index: 0,
+          columnRatios: [2, 1],
+          rowRatios: [1, 1],
+        },
+      }));
+      await el.updateComplete;
+
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      expect(stored).to.not.be.null;
+
+      const parsed = JSON.parse(stored!);
+      expect(parsed.grid.columnRatios).to.deep.equal([2, 1]);
+    });
+
+    it('updates grid ratios in state after grid-drag-complete event', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('grid-drag-complete', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          orientation: 'horizontal',
+          index: 0,
+          columnRatios: [1, 1],
+          rowRatios: [3, 1],
+        },
+      }));
+      await el.updateComplete;
+
+      expect((el as any).grid.rowRatios).to.deep.equal([3, 1]);
+    });
+
+    it('debounces rapid changes during drag by using grid-drag-complete', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+      localStorage.removeItem('dashboard-workspace-state');
+
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+
+      // Simulate multiple ratio-change events during drag (these should NOT trigger save)
+      grid.dispatchEvent(new CustomEvent('ratio-change', {
+        bubbles: true,
+        composed: true,
+        detail: { columnRatios: [1.1, 0.9], rowRatios: [1, 1] },
+      }));
+      grid.dispatchEvent(new CustomEvent('ratio-change', {
+        bubbles: true,
+        composed: true,
+        detail: { columnRatios: [1.2, 0.8], rowRatios: [1, 1] },
+      }));
+
+      // No save should have happened yet
+      let stored = localStorage.getItem('dashboard-workspace-state');
+      expect(stored).to.be.null;
+
+      // Only grid-drag-complete triggers save
+      grid.dispatchEvent(new CustomEvent('grid-drag-complete', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          orientation: 'vertical',
+          index: 0,
+          columnRatios: [1.5, 0.5],
+          rowRatios: [1, 1],
+        },
+      }));
+      await el.updateComplete;
+
+      stored = localStorage.getItem('dashboard-workspace-state');
+      expect(stored).to.not.be.null;
+    });
+
+    it('verifies state is saved after each action type', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+      localStorage.removeItem('dashboard-workspace-state');
+
+      // Action 1: Add iframe
+      const modal = el.shadowRoot!.querySelector('add-iframe-modal')!;
+      modal.dispatchEvent(new CustomEvent('add-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { url: 'https://test1.com' },
+      }));
+      await el.updateComplete;
+
+      let stored = localStorage.getItem('dashboard-workspace-state');
+      let parsed = JSON.parse(stored!);
+      expect(parsed.iframes.length).to.equal(5);
+
+      // Action 2: Edit URL
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      const iframeToEdit = (el as any).iframes[0];
+      grid.dispatchEvent(new CustomEvent('url-changed', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToEdit.id, url: 'https://edited.com' },
+      }));
+      await el.updateComplete;
+
+      stored = localStorage.getItem('dashboard-workspace-state');
+      parsed = JSON.parse(stored!);
+      const editedIframe = parsed.iframes.find((iframe: any) => iframe.id === iframeToEdit.id);
+      expect(editedIframe.url).to.equal('https://edited.com');
+
+      // Action 3: Resize grid
+      grid.dispatchEvent(new CustomEvent('grid-drag-complete', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          orientation: 'vertical',
+          index: 0,
+          columnRatios: [2, 1, 1],
+          rowRatios: [1, 1],
+        },
+      }));
+      await el.updateComplete;
+
+      stored = localStorage.getItem('dashboard-workspace-state');
+      parsed = JSON.parse(stored!);
+      expect(parsed.grid.columnRatios).to.deep.equal([2, 1, 1]);
+
+      // Action 4: Remove iframe
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToEdit.id },
+      }));
+      await el.updateComplete;
+
+      stored = localStorage.getItem('dashboard-workspace-state');
+      parsed = JSON.parse(stored!);
+      expect(parsed.iframes.length).to.equal(4);
+    });
+  });
+
   describe('load workspace state', () => {
     beforeEach(() => {
       localStorage.removeItem('dashboard-workspace-state');

@@ -83,3 +83,33 @@ Completed: 2026-01-24
 - The app will restore the previous session if localStorage has saved state
 - If no saved state exists, the app uses its default state (4 iframes in 2x2 grid)
 - Next tasks: "Implement auto-save on changes" or "Handle empty/first-load state" or "Handle corrupted storage data"
+
+## Phase 6, Task 3: Implement auto-save on changes
+
+Completed: 2026-01-24
+
+### What was done:
+- Added event listeners in DashboardApp render for `@url-changed` and `@grid-drag-complete`
+- Added `saveState()` call after adding iframe in `_handleAddIframe`
+- Added `saveState()` call after removing iframe in `_handleRemoveIframe`
+- Added `_handleUrlChanged` method to update iframe URL in state and call `saveState()`
+- Added `_handleGridDragComplete` method to update grid ratios and call `saveState()`
+- Grid resizing is debounced by using `grid-drag-complete` event (fires once at end of drag) instead of `ratio-change` (fires continuously during drag)
+
+### Tests:
+- Added 8 new tests for auto-save functionality covering:
+  - Calls save after adding iframe
+  - Calls save after removing iframe
+  - Calls save after editing iframe URL
+  - Updates iframe URL in state after url-changed event
+  - Calls save after resizing grid
+  - Updates grid ratios in state after grid-drag-complete event
+  - Debounces rapid changes during drag by using grid-drag-complete
+  - Verifies state is saved after each action type
+- All 274 tests pass
+
+### Notes for next person:
+- Auto-save is now fully implemented - state is persisted after every user action
+- The `url-changed` event was already being dispatched by `iframe-panel` component
+- The `grid-drag-complete` event was already being dispatched by `iframe-grid` component
+- Next tasks: "Handle empty/first-load state" or "Handle corrupted storage data"

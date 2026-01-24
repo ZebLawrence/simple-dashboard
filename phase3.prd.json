@@ -78,7 +78,7 @@
         "Test with various grid configurations",
         "Verify no panels can be resized to invisible"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

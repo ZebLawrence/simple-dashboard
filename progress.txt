@@ -156,3 +156,42 @@ Added 10 tests to `src/components/iframe-grid.test.ts`:
 - Test for full drag cycle (start → change → complete event sequence)
 
 All 65 tests passing.
+
+### Task 6: Handle edge cases for grid resizing - COMPLETE
+
+Implemented comprehensive edge case handling in `src/components/iframe-grid.ts`:
+
+1. **Enforce minimum panel size (100px)**:
+   - Added `MIN_PANEL_SIZE_PX = 100` constant
+   - Calculates minimum ratio based on pixel size relative to content dimensions
+   - Prevents panels from being resized smaller than 100px
+
+2. **Prevent ratios from going negative**:
+   - When one ratio hits the minimum, the adjacent ratio is adjusted to maintain the sum
+   - Both ratios are guaranteed to remain positive
+
+3. **Handle mouse leaving viewport during drag**:
+   - Added `boundHandleMouseLeave` property to store the listener reference
+   - Added `mouseleave` listener on `document.documentElement` when drag starts
+   - `handleMouseLeave()` method ends the drag gracefully, dispatching `grid-drag-complete` event
+   - `removeMouseLeaveListener()` method cleans up the listener
+   - Updated `clearDragState()` to call `removeMouseLeaveListener()`
+
+4. **Ensure ratios always sum to total correctly**:
+   - When clamping occurs, the sum of the two adjacent ratios is preserved
+   - Instead of clamping both independently (which could change the sum), we set one to minimum and compute the other as `originalSum - minimum`
+
+Added 11 tests to `src/components/iframe-grid.test.ts`:
+- Test for enforcing minimum panel size of 100px for columns
+- Test for enforcing minimum panel size of 100px for rows
+- Test for preventing ratios from going negative when dragging left
+- Test for preventing ratios from going negative when dragging up
+- Test for handling mouse leaving viewport during drag by ending drag
+- Test for removing mouseleave listener on clearDragState
+- Test for ensuring ratios always sum to the same total after drag
+- Test for ensuring ratios sum correctly even with extreme drag
+- Test for working correctly with various grid configurations (3 columns)
+- Test for ensuring no panel can be resized to invisible (always visible)
+- Test for not firing grid-drag-complete on mouseleave when no drag is active
+
+All 76 tests passing.

@@ -6,6 +6,7 @@ import './grid-divider.js';
 import type { GridDivider, DividerOrientation } from './grid-divider.js';
 
 const DIVIDER_SIZE = 4;
+const MIN_PANEL_SIZE_PX = 100;
 
 export interface DragState {
   active: boolean;
@@ -182,6 +183,10 @@ export class IframeGrid extends LitElement {
     this.boundHandleMouseUp = this.handleMouseUp.bind(this);
     document.addEventListener('mouseup', this.boundHandleMouseUp);
 
+    // Add document-level mouseleave listener to handle mouse leaving viewport
+    this.boundHandleMouseLeave = this.handleMouseLeave.bind(this);
+    document.documentElement.addEventListener('mouseleave', this.boundHandleMouseLeave);
+
     this.dispatchEvent(
       new CustomEvent('grid-drag-start', {
         bubbles: true,
@@ -198,6 +203,7 @@ export class IframeGrid extends LitElement {
 
   private boundHandleMouseMove: ((event: MouseEvent) => void) | null = null;
   private boundHandleMouseUp: ((event: MouseEvent) => void) | null = null;
+  private boundHandleMouseLeave: ((event: MouseEvent) => void) | null = null;
 
   private handleMouseMove(event: MouseEvent) {
     if (!this.dragState || !this.dragState.active) {
@@ -229,8 +235,23 @@ export class IframeGrid extends LitElement {
 
       // Calculate new ratios for the two adjacent columns
       const newColumnRatios = [...initialColumnRatios];
-      newColumnRatios[index] = Math.max(0.1, initialColumnRatios[index] + ratioDelta);
-      newColumnRatios[index + 1] = Math.max(0.1, initialColumnRatios[index + 1] - ratioDelta);
+      let newRatio1 = initialColumnRatios[index] + ratioDelta;
+      let newRatio2 = initialColumnRatios[index + 1] - ratioDelta;
+
+      // Calculate minimum ratio based on MIN_PANEL_SIZE_PX
+      const minRatio = (MIN_PANEL_SIZE_PX / contentWidth) * totalRatios;
+
+      // Enforce minimum size constraints and ensure ratios stay positive
+      if (newRatio1 < minRatio) {
+        newRatio1 = minRatio;
+        newRatio2 = initialColumnRatios[index] + initialColumnRatios[index + 1] - minRatio;
+      } else if (newRatio2 < minRatio) {
+        newRatio2 = minRatio;
+        newRatio1 = initialColumnRatios[index] + initialColumnRatios[index + 1] - minRatio;
+      }
+
+      newColumnRatios[index] = newRatio1;
+      newColumnRatios[index + 1] = newRatio2;
 
       // Update the grid property to trigger re-render with new CSS grid template
       this.grid = {
@@ -266,8 +287,23 @@ export class IframeGrid extends LitElement {
 
       // Calculate new ratios for the two adjacent rows
       const newRowRatios = [...initialRowRatios];
-      newRowRatios[index] = Math.max(0.1, initialRowRatios[index] + ratioDelta);
-      newRowRatios[index + 1] = Math.max(0.1, initialRowRatios[index + 1] - ratioDelta);
+      let newRatio1 = initialRowRatios[index] + ratioDelta;
+      let newRatio2 = initialRowRatios[index + 1] - ratioDelta;
+
+      // Calculate minimum ratio based on MIN_PANEL_SIZE_PX
+      const minRatio = (MIN_PANEL_SIZE_PX / contentHeight) * totalRatios;
+
+      // Enforce minimum size constraints and ensure ratios stay positive
+      if (newRatio1 < minRatio) {
+        newRatio1 = minRatio;
+        newRatio2 = initialRowRatios[index] + initialRowRatios[index + 1] - minRatio;
+      } else if (newRatio2 < minRatio) {
+        newRatio2 = minRatio;
+        newRatio1 = initialRowRatios[index] + initialRowRatios[index + 1] - minRatio;
+      }
+
+      newRowRatios[index] = newRatio1;
+      newRowRatios[index + 1] = newRatio2;
 
       // Update the grid property to trigger re-render with new CSS grid template
       this.grid = {
@@ -327,6 +363,35 @@ export class IframeGrid extends LitElement {
     }
   }
 
+  removeMouseLeaveListener() {
+    if (this.boundHandleMouseLeave) {
+      document.documentElement.removeEventListener('mouseleave', this.boundHandleMouseLeave);
+      this.boundHandleMouseLeave = null;
+    }
+  }
+
+  private handleMouseLeave(_event: MouseEvent) {
+    if (!this.dragState || !this.dragState.active) {
+      return;
+    }
+
+    // End the drag when mouse leaves the viewport, preserving current ratios
+    this.dispatchEvent(
+      new CustomEvent('grid-drag-complete', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          orientation: this.dragState.orientation,
+          index: this.dragState.index,
+          columnRatios: [...this.grid.columnRatios],
+          rowRatios: [...this.grid.rowRatios],
+        },
+      })
+    );
+
+    this.clearDragState();
+  }
+
   getDragState(): DragState | null {
     return this.dragState;
   }
@@ -340,6 +405,7 @@ export class IframeGrid extends LitElement {
     }
     this.removeMouseMoveListener();
     this.removeMouseUpListener();
+    this.removeMouseLeaveListener();
     this.dragState = null;
   }
 }

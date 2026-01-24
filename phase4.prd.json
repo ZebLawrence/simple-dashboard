@@ -26,7 +26,7 @@
         "Add Cancel and Add buttons",
         "Style modal centered on screen with dark theme"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

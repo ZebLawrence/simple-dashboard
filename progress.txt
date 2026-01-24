@@ -231,3 +231,44 @@ Added comprehensive tests in `src/components/add-iframe-button.test.ts`:
 - Test for button type attribute
 
 All 84 tests passing.
+
+### Task 2: Create add-iframe-modal dialog component - COMPLETE
+
+Implemented the add-iframe-modal component with the following:
+
+- Created `src/components/add-iframe-modal.ts` with Lit web component
+- AddIframeModal class extends LitElement with `open` property (Boolean, reflected)
+- Modal is hidden by default (display: none), shown when open attribute is present
+- Dark backdrop overlay with rgba(0, 0, 0, 0.7) covering full viewport
+- Modal centered on screen using flexbox (align-items: center, justify-content: center)
+- Dark theme styling: `#1a1a2e` modal background, `#0f3460` borders
+- URL input field with type="url", placeholder, and label
+- Cancel button with transparent background, styled for dark theme
+- Add button with primary accent color (`#e94560`)
+- Modal header "Add Iframe" with appropriate styling
+- Focus styles on inputs and buttons (2px solid #4a90d9 outline)
+- Buttons have type="button" attribute for accessibility
+- Label properly associated with input via for/id attributes
+
+Added export in `src/index.ts`:
+- Exported add-iframe-modal component
+
+Added comprehensive tests in `src/components/add-iframe-modal.test.ts`:
+- Test for being hidden by default
+- Test for being visible when open is true
+- Test for open property defaulting to false
+- Test for reflecting open property to attribute
+- Test for rendering dark backdrop overlay
+- Test for rendering modal dialog
+- Test for centering modal on screen
+- Test for dark theme styling
+- Test for rendering URL input field
+- Test for rendering label for URL input
+- Test for label-input association
+- Test for rendering Cancel button
+- Test for rendering Add button
+- Test for modal header
+- Test for input placeholder text
+- Test for button type attributes
+
+All 100 tests passing.

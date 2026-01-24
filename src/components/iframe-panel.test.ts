@@ -794,4 +794,176 @@ describe('IframePanel', () => {
       expect(toolbar).to.exist;
     });
   });
+
+  describe('toolbar interactions with iframe', () => {
+    it('toolbar has pointer-events none by default', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+
+      const toolbar = el.shadowRoot!.querySelector('.toolbar') as HTMLElement;
+      const styles = window.getComputedStyle(toolbar);
+      expect(styles.pointerEvents).to.equal('none');
+    });
+
+    it('toolbar has pointer-events auto when visible', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+
+      container.dispatchEvent(new MouseEvent('mouseenter'));
+      await el.updateComplete;
+
+      const toolbar = el.shadowRoot!.querySelector('.toolbar') as HTMLElement;
+      const styles = window.getComputedStyle(toolbar);
+      expect(styles.pointerEvents).to.equal('auto');
+    });
+
+    it('close button click stops event propagation', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const closeButton = el.shadowRoot!.querySelector('.close-button') as HTMLButtonElement;
+
+      let propagated = false;
+      el.shadowRoot!.querySelector('.iframe-container')!.addEventListener('click', () => {
+        propagated = true;
+      });
+
+      closeButton.click();
+      await el.updateComplete;
+
+      expect(propagated).to.be.false;
+    });
+
+    it('edit button click stops event propagation', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+
+      let propagated = false;
+      el.shadowRoot!.querySelector('.iframe-container')!.addEventListener('click', () => {
+        propagated = true;
+      });
+
+      editButton.click();
+      await el.updateComplete;
+
+      expect(propagated).to.be.false;
+    });
+
+    it('refresh button click stops event propagation', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const refreshButton = el.shadowRoot!.querySelector('.refresh-button') as HTMLButtonElement;
+
+      let propagated = false;
+      el.shadowRoot!.querySelector('.iframe-container')!.addEventListener('click', () => {
+        propagated = true;
+      });
+
+      refreshButton.click();
+      await el.updateComplete;
+
+      expect(propagated).to.be.false;
+    });
+
+    it('fullscreen button click stops event propagation', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      let propagated = false;
+      el.shadowRoot!.querySelector('.iframe-container')!.addEventListener('click', () => {
+        propagated = true;
+      });
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      expect(propagated).to.be.false;
+    });
+
+    it('toolbar buttons remain interactive when toolbar is visible', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+
+      container.dispatchEvent(new MouseEvent('mouseenter'));
+      await el.updateComplete;
+
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+      editButton.click();
+      await el.updateComplete;
+
+      expect(el.isEditingUrl).to.be.true;
+    });
+
+    it('toolbar z-index is higher than hover overlay', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+
+      const toolbar = el.shadowRoot!.querySelector('.toolbar') as HTMLElement;
+      const overlay = el.shadowRoot!.querySelector('.hover-overlay') as HTMLElement;
+      const toolbarZIndex = parseInt(window.getComputedStyle(toolbar).zIndex);
+      const overlayZIndex = parseInt(window.getComputedStyle(overlay).zIndex);
+
+      expect(toolbarZIndex).to.be.greaterThan(overlayZIndex);
+    });
+
+    it('all toolbar actions work reliably in sequence', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com" iframe-id="test-id"></iframe-panel>`);
+      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+
+      // Hover to show toolbar
+      container.dispatchEvent(new MouseEvent('mouseenter'));
+      await el.updateComplete;
+      expect(el.isHovered).to.be.true;
+
+      // Test edit action
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+      editButton.click();
+      await el.updateComplete;
+      expect(el.isEditingUrl).to.be.true;
+
+      // Cancel edit
+      const input = el.shadowRoot!.querySelector('.url-edit-input') as HTMLInputElement;
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      await el.updateComplete;
+      expect(el.isEditingUrl).to.be.false;
+
+      // Test refresh action
+      const refreshButton = el.shadowRoot!.querySelector('.refresh-button') as HTMLButtonElement;
+      refreshButton.click();
+      await el.updateComplete;
+      expect(el.isRefreshing).to.be.true;
+
+      // Simulate iframe load
+      const iframe = el.shadowRoot!.querySelector('iframe')!;
+      iframe.dispatchEvent(new Event('load'));
+      await el.updateComplete;
+      expect(el.isRefreshing).to.be.false;
+
+      // Test fullscreen action
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+      fullscreenButton.click();
+      await el.updateComplete;
+      expect(el.isFullscreen).to.be.true;
+
+      // Exit fullscreen
+      const exitButton = el.shadowRoot!.querySelector('.exit-fullscreen-button') as HTMLButtonElement;
+      exitButton.click();
+      await el.updateComplete;
+      expect(el.isFullscreen).to.be.false;
+    });
+
+    it('exit fullscreen button click stops event propagation', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const fullscreenButton = el.shadowRoot!.querySelector('.fullscreen-button') as HTMLButtonElement;
+
+      fullscreenButton.click();
+      await el.updateComplete;
+
+      let propagated = false;
+      el.shadowRoot!.querySelector('.fullscreen-overlay')!.addEventListener('click', () => {
+        propagated = true;
+      });
+
+      const exitButton = el.shadowRoot!.querySelector('.exit-fullscreen-button') as HTMLButtonElement;
+      exitButton.click();
+      await el.updateComplete;
+
+      expect(propagated).to.be.false;
+    });
+  });
 });

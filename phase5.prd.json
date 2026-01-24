@@ -89,7 +89,7 @@
         "No accidental iframe navigation from toolbar",
         "Verify all toolbar actions work reliably"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

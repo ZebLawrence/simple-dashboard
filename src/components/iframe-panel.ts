@@ -272,7 +272,8 @@ export class IframePanel extends LitElement {
     }
   `;
 
-  private _handleClose() {
+  private _handleClose(e: Event) {
+    e.stopPropagation();
     this.dispatchEvent(
       new CustomEvent('remove-iframe', {
         bubbles: true,
@@ -306,7 +307,8 @@ export class IframePanel extends LitElement {
     return this._isFullscreen;
   }
 
-  private _handleRefreshClick() {
+  private _handleRefreshClick(e: Event) {
+    e.stopPropagation();
     this._isRefreshing = true;
     const iframe = this.shadowRoot?.querySelector('iframe');
     if (iframe) {
@@ -324,7 +326,8 @@ export class IframePanel extends LitElement {
     }
   }
 
-  private _handleEditClick() {
+  private _handleEditClick(e: Event) {
+    e.stopPropagation();
     this._editUrlValue = this.url;
     this._isEditingUrl = true;
     this.updateComplete.then(() => {
@@ -375,12 +378,14 @@ export class IframePanel extends LitElement {
     this._editUrlValue = '';
   }
 
-  private _handleFullscreenClick() {
+  private _handleFullscreenClick(e: Event) {
+    e.stopPropagation();
     this._isFullscreen = true;
     document.addEventListener('keydown', this._handleFullscreenKeydown);
   }
 
-  private _handleExitFullscreen() {
+  private _handleExitFullscreen(e?: Event) {
+    e?.stopPropagation();
     this._isFullscreen = false;
     document.removeEventListener('keydown', this._handleFullscreenKeydown);
   }

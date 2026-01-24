@@ -175,3 +175,28 @@ Added 14 tests to `src/components/iframe-panel.test.ts`:
 - Test for fullscreen toolbar being visible in fullscreen mode
 
 All 217 tests passing.
+
+### Phase 5 Task 7: Handle toolbar interactions with iframe - COMPLETE
+
+Updated `src/components/iframe-panel.ts`:
+- Added `e.stopPropagation()` to `_handleClose()` method to prevent click events from reaching iframe
+- Added `e.stopPropagation()` to `_handleEditClick()` method to prevent click events from reaching iframe
+- Added `e.stopPropagation()` to `_handleRefreshClick()` method to prevent click events from reaching iframe
+- Added `e.stopPropagation()` to `_handleFullscreenClick()` method to prevent click events from reaching iframe
+- Added `e?.stopPropagation()` to `_handleExitFullscreen()` method (optional param since it can be called from keyboard handler)
+- Toolbar already had correct pointer-events styling (none by default, auto when visible)
+- Toolbar z-index (10) is already higher than hover-overlay z-index (5)
+
+Added 10 tests to `src/components/iframe-panel.test.ts`:
+- Test for toolbar having pointer-events none by default
+- Test for toolbar having pointer-events auto when visible
+- Test for close button click stopping event propagation
+- Test for edit button click stopping event propagation
+- Test for refresh button click stopping event propagation
+- Test for fullscreen button click stopping event propagation
+- Test for toolbar buttons remaining interactive when toolbar is visible
+- Test for toolbar z-index being higher than hover overlay
+- Test for all toolbar actions working reliably in sequence
+- Test for exit fullscreen button click stopping event propagation
+
+All 227 tests passing.

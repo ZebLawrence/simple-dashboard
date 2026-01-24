@@ -64,7 +64,7 @@
         "Export all interfaces",
         "Use interfaces in components"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

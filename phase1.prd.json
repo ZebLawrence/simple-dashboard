@@ -44,7 +44,7 @@
         "Create web-test-runner.config.js",
         "Create a sample test file and verify tests run"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "setup",

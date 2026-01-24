@@ -11,7 +11,7 @@
         "Create tsconfig.json with appropriate settings for Lit",
         "Verify TypeScript compilation works with a test file"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "setup",

@@ -60,3 +60,39 @@ Added 7 tests to `iframe-grid.test.ts`:
 - Test for storing independent copy of ratios (not reference)
 
 All 41 tests passing.
+
+### Task 3: Implement mousemove drag tracking - COMPLETE
+
+Implemented mousemove drag tracking in `src/components/iframe-grid.ts`:
+
+- Added `boundHandleMouseMove` property to store the bound event handler reference
+- Added document-level mousemove listener in `handleDragStart()` method
+- Implemented `handleMouseMove()` method that:
+  - Returns early if no active drag state
+  - Gets the grid container dimensions for pixel-to-ratio conversion
+  - For vertical dividers: calculates deltaX, converts to ratio adjustment based on content width
+  - For horizontal dividers: calculates deltaY, converts to ratio adjustment based on content height
+  - Adjusts adjacent column/row ratios (one increases, other decreases by same amount)
+  - Enforces minimum ratio of 0.1 to prevent panels from disappearing
+  - Dispatches `ratio-change` custom event with new ratios
+- Added `removeMouseMoveListener()` method to clean up the document listener
+- Updated `clearDragState()` to call `removeMouseMoveListener()` for proper cleanup
+
+The ratio calculation works by:
+1. Computing total content size (excluding divider tracks)
+2. Converting pixel delta to ratio delta using: `ratioPerPixel = totalRatios / contentSize`
+3. Adding delta to the column/row before the divider, subtracting from the one after
+4. Clamping both values to minimum 0.1
+
+Added 9 tests to `src/components/iframe-grid.test.ts`:
+- Test for adding mousemove listener on drag start
+- Test for dispatching ratio-change event on vertical divider mousemove
+- Test for dispatching ratio-change event on horizontal divider mousemove
+- Test for adjusting adjacent column ratios based on delta for vertical drag
+- Test for adjusting adjacent row ratios based on delta for horizontal drag
+- Test for enforcing minimum ratio of 0.1
+- Test for removing mousemove listener on clearDragState
+- Test for not dispatching ratio-change when no drag is active
+- Test for smooth tracking without jitter on multiple mousemove events
+
+All 50 tests passing.

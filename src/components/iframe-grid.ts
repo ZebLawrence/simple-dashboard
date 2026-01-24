@@ -174,6 +174,10 @@ export class IframeGrid extends LitElement {
       initialRowRatios: [...this.grid.rowRatios],
     };
 
+    // Add document-level mousemove listener for drag tracking
+    this.boundHandleMouseMove = this.handleMouseMove.bind(this);
+    document.addEventListener('mousemove', this.boundHandleMouseMove);
+
     this.dispatchEvent(
       new CustomEvent('grid-drag-start', {
         bubbles: true,
@@ -188,6 +192,94 @@ export class IframeGrid extends LitElement {
     );
   }
 
+  private boundHandleMouseMove: ((event: MouseEvent) => void) | null = null;
+
+  private handleMouseMove(event: MouseEvent) {
+    if (!this.dragState || !this.dragState.active) {
+      return;
+    }
+
+    const { orientation, index, startX, startY, initialColumnRatios, initialRowRatios } =
+      this.dragState;
+
+    // Get the grid container dimensions
+    const container = this.shadowRoot?.querySelector('.grid-container');
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+
+    if (orientation === 'vertical') {
+      // Calculate delta in pixels
+      const deltaX = event.clientX - startX;
+
+      // Calculate total content width (excluding divider tracks)
+      const numDividers = this.grid.columns - 1;
+      const totalDividerWidth = numDividers * DIVIDER_SIZE;
+      const contentWidth = rect.width - totalDividerWidth;
+
+      // Convert pixel delta to ratio delta
+      const totalRatios = initialColumnRatios.reduce((sum, r) => sum + r, 0);
+      const ratioPerPixel = totalRatios / contentWidth;
+      const ratioDelta = deltaX * ratioPerPixel;
+
+      // Calculate new ratios for the two adjacent columns
+      const newColumnRatios = [...initialColumnRatios];
+      newColumnRatios[index] = Math.max(0.1, initialColumnRatios[index] + ratioDelta);
+      newColumnRatios[index + 1] = Math.max(0.1, initialColumnRatios[index + 1] - ratioDelta);
+
+      this.dispatchEvent(
+        new CustomEvent('ratio-change', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            orientation,
+            index,
+            columnRatios: newColumnRatios,
+            rowRatios: this.grid.rowRatios,
+          },
+        })
+      );
+    } else {
+      // Horizontal divider - affects row ratios
+      const deltaY = event.clientY - startY;
+
+      // Calculate total content height (excluding divider tracks)
+      const numDividers = this.grid.rows - 1;
+      const totalDividerHeight = numDividers * DIVIDER_SIZE;
+      const contentHeight = rect.height - totalDividerHeight;
+
+      // Convert pixel delta to ratio delta
+      const totalRatios = initialRowRatios.reduce((sum, r) => sum + r, 0);
+      const ratioPerPixel = totalRatios / contentHeight;
+      const ratioDelta = deltaY * ratioPerPixel;
+
+      // Calculate new ratios for the two adjacent rows
+      const newRowRatios = [...initialRowRatios];
+      newRowRatios[index] = Math.max(0.1, initialRowRatios[index] + ratioDelta);
+      newRowRatios[index + 1] = Math.max(0.1, initialRowRatios[index + 1] - ratioDelta);
+
+      this.dispatchEvent(
+        new CustomEvent('ratio-change', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            orientation,
+            index,
+            columnRatios: this.grid.columnRatios,
+            rowRatios: newRowRatios,
+          },
+        })
+      );
+    }
+  }
+
+  removeMouseMoveListener() {
+    if (this.boundHandleMouseMove) {
+      document.removeEventListener('mousemove', this.boundHandleMouseMove);
+      this.boundHandleMouseMove = null;
+    }
+  }
+
   getDragState(): DragState | null {
     return this.dragState;
   }
@@ -199,6 +291,7 @@ export class IframeGrid extends LitElement {
         (divider as GridDivider).setDragging(false);
       });
     }
+    this.removeMouseMoveListener();
     this.dragState = null;
   }
 }

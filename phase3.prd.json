@@ -39,7 +39,7 @@
         "Ensure smooth tracking without jitter",
         "Verify divider position updates during drag"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

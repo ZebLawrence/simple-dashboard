@@ -521,4 +521,150 @@ describe('IframeGrid', () => {
       el.clearDragState();
     });
   });
+
+  describe('CSS grid template update on drag', () => {
+    it('updates columnRatios in grid property on vertical divider drag', async () => {
+      const customGrid: GridConfig = {
+        columns: 2,
+        rows: 1,
+        columnRatios: [1, 1],
+        rowRatios: [1],
+      };
+      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+      // Start drag
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+
+      // Simulate mousemove
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
+
+      // Grid property should be updated
+      expect(el.grid.columnRatios[0]).to.be.greaterThan(1);
+      expect(el.grid.columnRatios[1]).to.be.lessThan(1);
+
+      el.clearDragState();
+    });
+
+    it('updates rowRatios in grid property on horizontal divider drag', async () => {
+      const customGrid: GridConfig = {
+        columns: 1,
+        rows: 2,
+        columnRatios: [1],
+        rowRatios: [1, 1],
+      };
+      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+      // Start drag
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
+
+      // Simulate mousemove
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 150 }));
+
+      // Grid property should be updated
+      expect(el.grid.rowRatios[0]).to.be.greaterThan(1);
+      expect(el.grid.rowRatios[1]).to.be.lessThan(1);
+
+      el.clearDragState();
+    });
+
+    it('updates CSS grid-template-columns in real-time during drag', async () => {
+      const customGrid: GridConfig = {
+        columns: 2,
+        rows: 1,
+        columnRatios: [1, 1],
+        rowRatios: [1],
+      };
+      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+      const container = el.shadowRoot!.querySelector('.grid-container') as HTMLElement;
+      const initialTemplate = container.style.gridTemplateColumns;
+      expect(initialTemplate).to.equal('1fr 4px 1fr');
+
+      // Start drag
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+
+      // Simulate mousemove
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
+
+      // Wait for Lit to update
+      await el.updateComplete;
+
+      // CSS should be updated
+      const newTemplate = container.style.gridTemplateColumns;
+      expect(newTemplate).to.not.equal(initialTemplate);
+      // First column should be larger than 1fr
+      expect(newTemplate).to.match(/^[\d.]+fr 4px [\d.]+fr$/);
+
+      el.clearDragState();
+    });
+
+    it('updates CSS grid-template-rows in real-time during drag', async () => {
+      const customGrid: GridConfig = {
+        columns: 1,
+        rows: 2,
+        columnRatios: [1],
+        rowRatios: [1, 1],
+      };
+      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+      const container = el.shadowRoot!.querySelector('.grid-container') as HTMLElement;
+      const initialTemplate = container.style.gridTemplateRows;
+      expect(initialTemplate).to.equal('1fr 4px 1fr');
+
+      // Start drag
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
+
+      // Simulate mousemove
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 150 }));
+
+      // Wait for Lit to update
+      await el.updateComplete;
+
+      // CSS should be updated
+      const newTemplate = container.style.gridTemplateRows;
+      expect(newTemplate).to.not.equal(initialTemplate);
+      // First row should be larger than 1fr
+      expect(newTemplate).to.match(/^[\d.]+fr 4px [\d.]+fr$/);
+
+      el.clearDragState();
+    });
+
+    it('iframe panels resize visually during drag', async () => {
+      const customGrid: GridConfig = {
+        columns: 2,
+        rows: 1,
+        columnRatios: [1, 1],
+        rowRatios: [1],
+      };
+      const el = await fixture<IframeGrid>(html`<iframe-grid .grid=${customGrid}></iframe-grid>`);
+
+      // Start drag
+      const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
+      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+
+      // Simulate mousemove to increase first column
+      document.dispatchEvent(new MouseEvent('mousemove', { clientX: 200, clientY: 50 }));
+
+      // Wait for Lit to update
+      await el.updateComplete;
+
+      // Verify iframe panels exist and grid template was updated
+      const panels = el.shadowRoot!.querySelectorAll('iframe-panel');
+      expect(panels.length).to.equal(2);
+
+      // Verify grid ratios were updated (first should be larger)
+      expect(el.grid.columnRatios[0]).to.be.greaterThan(el.grid.columnRatios[1]);
+
+      el.clearDragState();
+    });
+  });
 });

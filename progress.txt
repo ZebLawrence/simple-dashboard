@@ -96,3 +96,31 @@ Added 9 tests to `src/components/iframe-grid.test.ts`:
 - Test for smooth tracking without jitter on multiple mousemove events
 
 All 50 tests passing.
+
+### Task 4: Update CSS Grid template on drag - COMPLETE
+
+Implemented real-time CSS grid template updates during drag in `src/components/iframe-grid.ts`:
+
+- Modified `handleMouseMove()` method to update `this.grid` property directly during drag
+- For vertical dividers: Updates `columnRatios` array in the grid property
+- For horizontal dividers: Updates `rowRatios` array in the grid property
+- Uses spread operator to create new object reference, triggering Lit's reactive update
+- CSS `grid-template-columns` and `grid-template-rows` recalculate automatically via `getGridTemplateColumns()` and `getGridTemplateRows()` methods
+- The `ratio-change` event is still dispatched for external listeners
+
+The implementation approach:
+1. During drag, calculate new ratios (as before)
+2. Update `this.grid = { ...this.grid, columnRatios: newColumnRatios }` (or rowRatios)
+3. Lit detects the property change and re-renders
+4. Re-render calls `getGridTemplateColumns()` / `getGridTemplateRows()` which use the updated ratios
+5. New CSS template is applied to the grid container
+6. Iframe panels resize visually in real-time
+
+Added 5 tests to `src/components/iframe-grid.test.ts`:
+- Test for updating columnRatios in grid property on vertical divider drag
+- Test for updating rowRatios in grid property on horizontal divider drag
+- Test for updating CSS grid-template-columns in real-time during drag
+- Test for updating CSS grid-template-rows in real-time during drag
+- Test for iframe panels resizing visually during drag
+
+All 55 tests passing.

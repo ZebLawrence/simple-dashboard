@@ -227,6 +227,12 @@ export class IframeGrid extends LitElement {
       newColumnRatios[index] = Math.max(0.1, initialColumnRatios[index] + ratioDelta);
       newColumnRatios[index + 1] = Math.max(0.1, initialColumnRatios[index + 1] - ratioDelta);
 
+      // Update the grid property to trigger re-render with new CSS grid template
+      this.grid = {
+        ...this.grid,
+        columnRatios: newColumnRatios,
+      };
+
       this.dispatchEvent(
         new CustomEvent('ratio-change', {
           bubbles: true,
@@ -257,6 +263,12 @@ export class IframeGrid extends LitElement {
       const newRowRatios = [...initialRowRatios];
       newRowRatios[index] = Math.max(0.1, initialRowRatios[index] + ratioDelta);
       newRowRatios[index + 1] = Math.max(0.1, initialRowRatios[index + 1] - ratioDelta);
+
+      // Update the grid property to trigger re-render with new CSS grid template
+      this.grid = {
+        ...this.grid,
+        rowRatios: newRowRatios,
+      };
 
       this.dispatchEvent(
         new CustomEvent('ratio-change', {

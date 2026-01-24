@@ -52,7 +52,7 @@
         "Apply new template to grid container",
         "Verify iframe panels resize in real-time"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

@@ -64,7 +64,7 @@
         "Handle iframe load complete event",
         "Verify iframe content refreshes"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

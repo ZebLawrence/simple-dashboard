@@ -104,3 +104,35 @@ Added 12 tests to `src/components/iframe-panel.test.ts`:
 - Test for overlay not being rendered when not editing
 
 All 193 tests passing.
+
+### Phase 5 Task 5: Implement Refresh functionality - COMPLETE
+
+Updated `src/components/iframe-panel.ts`:
+- Added `_isRefreshing` state property to track refresh state
+- Added `isRefreshing` getter for external access to refresh state
+- Added `_handleRefreshClick()` method to initiate refresh
+  - Sets `_isRefreshing` to true
+  - Updates iframe src with cache-busting `_refresh` query parameter using `Date.now()`
+- Added `_handleIframeLoad()` method to handle iframe load complete event
+  - Sets `_isRefreshing` to false when iframe finishes loading
+- Added CSS for loading indicator:
+  - `.loading-indicator` - centered overlay with semi-transparent dark background
+  - `.loading-spinner` - animated spinning circle with accent color
+  - `.loading-text` - displays "Refreshing..." text
+  - `@keyframes spin` - animation for spinner rotation
+- Loading indicator appears centered over iframe during refresh
+- Added `@load` event listener to iframe element
+
+Added 10 tests to `src/components/iframe-panel.test.ts`:
+- Test for isRefreshing is false by default
+- Test for clicking refresh button sets isRefreshing to true
+- Test for clicking refresh button updates iframe src
+- Test for showing loading indicator when refreshing
+- Test for loading indicator contains spinner
+- Test for loading indicator contains "Refreshing..." text
+- Test for loading indicator is hidden when not refreshing
+- Test for isRefreshing is set to false when iframe loads
+- Test for loading indicator hides after iframe loads
+- Test for iframe has load event listener
+
+All 203 tests passing.

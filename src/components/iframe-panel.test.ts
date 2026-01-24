@@ -520,4 +520,117 @@ describe('IframePanel', () => {
       expect(overlay).to.be.null;
     });
   });
+
+  describe('refresh functionality', () => {
+    it('isRefreshing is false by default', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      expect(el.isRefreshing).to.be.false;
+    });
+
+    it('clicking refresh button sets isRefreshing to true', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const refreshButton = el.shadowRoot!.querySelector('.refresh-button') as HTMLButtonElement;
+
+      refreshButton.click();
+      await el.updateComplete;
+
+      expect(el.isRefreshing).to.be.true;
+    });
+
+    it('clicking refresh button updates iframe src', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const iframe = el.shadowRoot!.querySelector('iframe')!;
+      const originalSrc = iframe.src;
+
+      const refreshButton = el.shadowRoot!.querySelector('.refresh-button') as HTMLButtonElement;
+      refreshButton.click();
+      await el.updateComplete;
+
+      expect(iframe.src).to.not.equal(originalSrc);
+      expect(iframe.src).to.include('_refresh=');
+    });
+
+    it('shows loading indicator when refreshing', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const refreshButton = el.shadowRoot!.querySelector('.refresh-button') as HTMLButtonElement;
+
+      refreshButton.click();
+      await el.updateComplete;
+
+      const loadingIndicator = el.shadowRoot!.querySelector('.loading-indicator');
+      expect(loadingIndicator).to.exist;
+    });
+
+    it('loading indicator contains spinner', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const refreshButton = el.shadowRoot!.querySelector('.refresh-button') as HTMLButtonElement;
+
+      refreshButton.click();
+      await el.updateComplete;
+
+      const spinner = el.shadowRoot!.querySelector('.loading-spinner');
+      expect(spinner).to.exist;
+    });
+
+    it('loading indicator contains "Refreshing..." text', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const refreshButton = el.shadowRoot!.querySelector('.refresh-button') as HTMLButtonElement;
+
+      refreshButton.click();
+      await el.updateComplete;
+
+      const loadingText = el.shadowRoot!.querySelector('.loading-text');
+      expect(loadingText).to.exist;
+      expect(loadingText!.textContent).to.equal('Refreshing...');
+    });
+
+    it('loading indicator is hidden when not refreshing', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+
+      const loadingIndicator = el.shadowRoot!.querySelector('.loading-indicator');
+      expect(loadingIndicator).to.be.null;
+    });
+
+    it('isRefreshing is set to false when iframe loads', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const refreshButton = el.shadowRoot!.querySelector('.refresh-button') as HTMLButtonElement;
+
+      refreshButton.click();
+      await el.updateComplete;
+      expect(el.isRefreshing).to.be.true;
+
+      const iframe = el.shadowRoot!.querySelector('iframe')!;
+      iframe.dispatchEvent(new Event('load'));
+      await el.updateComplete;
+
+      expect(el.isRefreshing).to.be.false;
+    });
+
+    it('loading indicator hides after iframe loads', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const refreshButton = el.shadowRoot!.querySelector('.refresh-button') as HTMLButtonElement;
+
+      refreshButton.click();
+      await el.updateComplete;
+
+      let loadingIndicator = el.shadowRoot!.querySelector('.loading-indicator');
+      expect(loadingIndicator).to.exist;
+
+      const iframe = el.shadowRoot!.querySelector('iframe')!;
+      iframe.dispatchEvent(new Event('load'));
+      await el.updateComplete;
+
+      loadingIndicator = el.shadowRoot!.querySelector('.loading-indicator');
+      expect(loadingIndicator).to.be.null;
+    });
+
+    it('iframe has load event listener', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+
+      const iframe = el.shadowRoot!.querySelector('iframe')!;
+      expect(iframe).to.exist;
+      // The iframe should handle the load event - verified by dispatching load event and checking state change
+    });
+  });
 });

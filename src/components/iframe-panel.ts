@@ -18,6 +18,9 @@ export class IframePanel extends LitElement {
   @state()
   private _editUrlValue = '';
 
+  @state()
+  private _isRefreshing = false;
+
   static override styles = css`
     :host {
       display: block;
@@ -159,6 +162,42 @@ export class IframePanel extends LitElement {
       outline: none;
       border-color: #e94560;
     }
+
+    .loading-indicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(22, 33, 62, 0.9);
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: 1px solid #0f3460;
+    }
+
+    .loading-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(233, 69, 96, 0.3);
+      border-top-color: #e94560;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 10px;
+    }
+
+    .loading-text {
+      color: #e0e0e0;
+      font-size: 14px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
   `;
 
   private _handleClose() {
@@ -185,6 +224,28 @@ export class IframePanel extends LitElement {
 
   get isEditingUrl(): boolean {
     return this._isEditingUrl;
+  }
+
+  get isRefreshing(): boolean {
+    return this._isRefreshing;
+  }
+
+  private _handleRefreshClick() {
+    this._isRefreshing = true;
+    const iframe = this.shadowRoot?.querySelector('iframe');
+    if (iframe) {
+      // Force reload by re-setting the src with a cache-busting parameter
+      const currentSrc = iframe.src;
+      const url = new URL(currentSrc);
+      url.searchParams.set('_refresh', Date.now().toString());
+      iframe.src = url.toString();
+    }
+  }
+
+  private _handleIframeLoad() {
+    if (this._isRefreshing) {
+      this._isRefreshing = false;
+    }
   }
 
   private _handleEditClick() {
@@ -247,7 +308,7 @@ export class IframePanel extends LitElement {
       >
         <div class="toolbar ${this._isHovered ? 'visible' : ''}">
           <button class="toolbar-button edit-button" @click=${this._handleEditClick} title="Edit URL">✎</button>
-          <button class="toolbar-button refresh-button" title="Refresh">↻</button>
+          <button class="toolbar-button refresh-button" @click=${this._handleRefreshClick} title="Refresh">↻</button>
           <button class="toolbar-button fullscreen-button" title="Fullscreen">⛶</button>
           <button class="toolbar-button close-button" @click=${this._handleClose} title="Remove iframe">×</button>
         </div>
@@ -268,10 +329,19 @@ export class IframePanel extends LitElement {
               </div>
             `
           : ''}
+        ${this._isRefreshing
+          ? html`
+              <div class="loading-indicator">
+                <div class="loading-spinner"></div>
+                <span class="loading-text">Refreshing...</span>
+              </div>
+            `
+          : ''}
         <iframe
           src=${this.url}
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          @load=${this._handleIframeLoad}
         ></iframe>
       </div>
     `;

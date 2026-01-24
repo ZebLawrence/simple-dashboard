@@ -26,3 +26,30 @@ Completed: 2026-01-24
 - The storage service is now ready to be integrated with DashboardApp
 - Next task should be "Implement save workspace state" which will wire up the service
 - The StorageService exports both a class and a default instance (`storageService`)
+
+## Phase 6, Task 2: Implement save workspace state
+
+Completed: 2026-01-24
+
+### What was done:
+- Added `getWorkspaceState()` method to DashboardApp that returns a WorkspaceState object
+- Added `saveState()` method to DashboardApp that saves state via storageService
+- Imported `storageService` and `WorkspaceState` type in dashboard-app.ts
+- Added 14 new tests for save workspace state functionality covering:
+  - Serializing iframes array to JSON
+  - Serializing grid config to JSON
+  - Combining into WorkspaceState object
+  - Writing to localStorage
+  - Verifying data persists in browser storage
+  - Saving includes iframe IDs, URLs, and positions
+  - Saving includes columnRatios and rowRatios
+  - Saving updated state after adding/removing iframes
+
+### Tests:
+- All 257 tests pass (including 14 new tests for save workspace state)
+- Note: There's a puppeteer "detached frame" error during test cleanup that's unrelated to actual test failures - it's an infrastructure issue with iframe-heavy tests
+
+### Notes for next person:
+- The `saveState()` method is now available but not automatically called
+- Next task should be "Implement auto-save on changes" which will call saveState() after each state change
+- Alternatively, "Implement load workspace state" can be done to restore state on app init

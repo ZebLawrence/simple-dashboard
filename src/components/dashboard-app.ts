@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import type { IframeConfig, GridConfig } from '../types/index.js';
+import type { IframeConfig, GridConfig, WorkspaceState } from '../types/index.js';
+import { storageService } from '../services/storage-service.js';
 import './iframe-grid.js';
 import './add-iframe-button.js';
 import './add-iframe-modal.js';
@@ -211,6 +212,25 @@ export class DashboardApp extends LitElement {
       newRatios.push(1);
     }
     return newRatios;
+  }
+
+  /**
+   * Get the current workspace state
+   */
+  getWorkspaceState(): WorkspaceState {
+    return {
+      iframes: this.iframes,
+      grid: this.grid,
+    };
+  }
+
+  /**
+   * Save the current workspace state to localStorage
+   * @returns true if save was successful, false if storage quota exceeded
+   */
+  saveState(): boolean {
+    const state = this.getWorkspaceState();
+    return storageService.save(state);
   }
 
   private _getNextGridPosition(): { row: number; col: number } {

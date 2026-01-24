@@ -2,10 +2,15 @@ import { html } from 'lit';
 import { fixture, expect, fixtureCleanup } from '@open-wc/testing';
 import './dashboard-app.js';
 import type { DashboardApp } from './dashboard-app.js';
+import { StorageService } from '../services/storage-service.js';
+
+const TEST_STORAGE_KEY = 'test-dashboard-workspace-state';
 
 describe('DashboardApp', () => {
   afterEach(() => {
     fixtureCleanup();
+    // Clean up localStorage to prevent test pollution
+    localStorage.removeItem('dashboard-workspace-state');
   });
 
   describe('handle new iframe in grid', () => {
@@ -585,6 +590,193 @@ describe('DashboardApp', () => {
       for (const id of expectedRemainingIds) {
         expect(remainingIds).to.include(id);
       }
+    });
+  });
+
+  describe('save workspace state', () => {
+    let testStorage: StorageService;
+
+    beforeEach(() => {
+      testStorage = new StorageService(TEST_STORAGE_KEY);
+      testStorage.clear();
+    });
+
+    afterEach(() => {
+      testStorage.clear();
+    });
+
+    it('serializes iframes array to JSON', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const state = (el as any).getWorkspaceState();
+
+      expect(state.iframes).to.be.an('array');
+      expect(state.iframes.length).to.equal(4);
+      // Verify it can be stringified
+      const json = JSON.stringify(state.iframes);
+      expect(json).to.be.a('string');
+    });
+
+    it('serializes grid config to JSON', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const state = (el as any).getWorkspaceState();
+
+      expect(state.grid).to.be.an('object');
+      expect(state.grid.columns).to.equal(2);
+      expect(state.grid.rows).to.equal(2);
+      // Verify it can be stringified
+      const json = JSON.stringify(state.grid);
+      expect(json).to.be.a('string');
+    });
+
+    it('combines iframes and grid into WorkspaceState object', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const state = (el as any).getWorkspaceState();
+
+      expect(state).to.have.property('iframes');
+      expect(state).to.have.property('grid');
+      expect(state.iframes).to.equal((el as any).iframes);
+      expect(state.grid).to.equal((el as any).grid);
+    });
+
+    it('writes state to localStorage', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const result = (el as any).saveState();
+
+      expect(result).to.be.true;
+
+      // Verify localStorage has data (check default key)
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      expect(stored).to.not.be.null;
+    });
+
+    it('returns true on successful save', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const result = (el as any).saveState();
+
+      expect(result).to.be.true;
+    });
+
+    it('verifies data persists in browser storage', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      (el as any).saveState();
+
+      // Read back from storage and verify
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      expect(stored).to.not.be.null;
+
+      const parsed = JSON.parse(stored!);
+      expect(parsed.iframes).to.have.lengthOf(4);
+      expect(parsed.grid.columns).to.equal(2);
+      expect(parsed.grid.rows).to.equal(2);
+    });
+
+    it('includes iframe IDs in saved state', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      (el as any).saveState();
+
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      const parsed = JSON.parse(stored!);
+
+      for (const iframe of parsed.iframes) {
+        expect(iframe.id).to.be.a('string');
+        expect(iframe.id.length).to.be.greaterThan(0);
+      }
+    });
+
+    it('includes iframe URLs in saved state', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      (el as any).saveState();
+
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      const parsed = JSON.parse(stored!);
+
+      expect(parsed.iframes[0].url).to.equal('https://example.com');
+      expect(parsed.iframes[1].url).to.equal('https://example.org');
+    });
+
+    it('includes iframe positions in saved state', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      (el as any).saveState();
+
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      const parsed = JSON.parse(stored!);
+
+      expect(parsed.iframes[0].position).to.deep.equal({ row: 0, col: 0 });
+      expect(parsed.iframes[1].position).to.deep.equal({ row: 0, col: 1 });
+    });
+
+    it('includes columnRatios in saved state', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      (el as any).saveState();
+
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      const parsed = JSON.parse(stored!);
+
+      expect(parsed.grid.columnRatios).to.deep.equal([1, 1]);
+    });
+
+    it('includes rowRatios in saved state', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      (el as any).saveState();
+
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      const parsed = JSON.parse(stored!);
+
+      expect(parsed.grid.rowRatios).to.deep.equal([1, 1]);
+    });
+
+    it('saves updated state after adding iframe', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Add a new iframe
+      const modal = el.shadowRoot!.querySelector('add-iframe-modal')!;
+      modal.dispatchEvent(new CustomEvent('add-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { url: 'https://newsite.com' },
+      }));
+      await el.updateComplete;
+
+      (el as any).saveState();
+
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      const parsed = JSON.parse(stored!);
+
+      expect(parsed.iframes.length).to.equal(5);
+      const hasNewUrl = parsed.iframes.some((iframe: any) => iframe.url === 'https://newsite.com');
+      expect(hasNewUrl).to.be.true;
+    });
+
+    it('saves updated state after removing iframe', async () => {
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Remove an iframe
+      const iframeToRemove = (el as any).iframes[0];
+      const grid = el.shadowRoot!.querySelector('iframe-grid')!;
+      grid.dispatchEvent(new CustomEvent('remove-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { id: iframeToRemove.id },
+      }));
+      await el.updateComplete;
+
+      (el as any).saveState();
+
+      const stored = localStorage.getItem('dashboard-workspace-state');
+      const parsed = JSON.parse(stored!);
+
+      expect(parsed.iframes.length).to.equal(3);
     });
   });
 });

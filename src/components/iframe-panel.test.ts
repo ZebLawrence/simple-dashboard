@@ -328,4 +328,196 @@ describe('IframePanel', () => {
       expect(closeButton.textContent).to.equal('×');
     });
   });
+
+  describe('edit URL functionality', () => {
+    it('isEditingUrl is false by default', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      expect(el.isEditingUrl).to.be.false;
+    });
+
+    it('clicking edit button shows URL edit overlay', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+
+      editButton.click();
+      await el.updateComplete;
+
+      const overlay = el.shadowRoot!.querySelector('.url-edit-overlay');
+      expect(overlay).to.exist;
+    });
+
+    it('sets isEditingUrl to true when edit button is clicked', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+
+      editButton.click();
+      await el.updateComplete;
+
+      expect(el.isEditingUrl).to.be.true;
+    });
+
+    it('URL input is pre-filled with current URL', async () => {
+      const testUrl = 'https://example.com/page';
+      const el = await fixture<IframePanel>(html`<iframe-panel url=${testUrl}></iframe-panel>`);
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+
+      editButton.click();
+      await el.updateComplete;
+
+      const input = el.shadowRoot!.querySelector('.url-edit-input') as HTMLInputElement;
+      expect(input.value).to.equal(testUrl);
+    });
+
+    it('pressing Enter submits the new URL', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+
+      editButton.click();
+      await el.updateComplete;
+
+      const input = el.shadowRoot!.querySelector('.url-edit-input') as HTMLInputElement;
+      input.value = 'https://newurl.com';
+      input.dispatchEvent(new Event('input'));
+      await el.updateComplete;
+
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      await el.updateComplete;
+
+      expect(el.url).to.equal('https://newurl.com');
+      expect(el.isEditingUrl).to.be.false;
+    });
+
+    it('pressing Escape cancels the edit', async () => {
+      const originalUrl = 'https://example.com';
+      const el = await fixture<IframePanel>(html`<iframe-panel url=${originalUrl}></iframe-panel>`);
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+
+      editButton.click();
+      await el.updateComplete;
+
+      const input = el.shadowRoot!.querySelector('.url-edit-input') as HTMLInputElement;
+      input.value = 'https://newurl.com';
+      input.dispatchEvent(new Event('input'));
+      await el.updateComplete;
+
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      await el.updateComplete;
+
+      expect(el.url).to.equal(originalUrl);
+      expect(el.isEditingUrl).to.be.false;
+    });
+
+    it('clicking outside the edit container cancels the edit', async () => {
+      const originalUrl = 'https://example.com';
+      const el = await fixture<IframePanel>(html`<iframe-panel url=${originalUrl}></iframe-panel>`);
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+
+      editButton.click();
+      await el.updateComplete;
+
+      const overlay = el.shadowRoot!.querySelector('.url-edit-overlay') as HTMLElement;
+      overlay.click();
+      await el.updateComplete;
+
+      expect(el.url).to.equal(originalUrl);
+      expect(el.isEditingUrl).to.be.false;
+    });
+
+    it('clicking inside the edit container does not cancel the edit', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+
+      editButton.click();
+      await el.updateComplete;
+
+      const container = el.shadowRoot!.querySelector('.url-edit-container') as HTMLElement;
+      container.click();
+      await el.updateComplete;
+
+      expect(el.isEditingUrl).to.be.true;
+    });
+
+    it('iframe src updates when URL is submitted', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+
+      editButton.click();
+      await el.updateComplete;
+
+      const input = el.shadowRoot!.querySelector('.url-edit-input') as HTMLInputElement;
+      input.value = 'https://newurl.com';
+      input.dispatchEvent(new Event('input'));
+      await el.updateComplete;
+
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      await el.updateComplete;
+
+      const iframe = el.shadowRoot!.querySelector('iframe')!;
+      expect(iframe.src).to.equal('https://newurl.com/');
+    });
+
+    it('dispatches url-changed event when URL is submitted', async () => {
+      const testId = 'iframe-url-change';
+      const el = await fixture<IframePanel>(html`<iframe-panel iframe-id=${testId} url="https://example.com"></iframe-panel>`);
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+
+      editButton.click();
+      await el.updateComplete;
+
+      const input = el.shadowRoot!.querySelector('.url-edit-input') as HTMLInputElement;
+      input.value = 'https://newurl.com';
+      input.dispatchEvent(new Event('input'));
+      await el.updateComplete;
+
+      let eventFired = false;
+      let eventId = '';
+      let eventUrl = '';
+      el.addEventListener('url-changed', ((e: CustomEvent<{ id: string; url: string }>) => {
+        eventFired = true;
+        eventId = e.detail.id;
+        eventUrl = e.detail.url;
+      }) as EventListener);
+
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      await el.updateComplete;
+
+      expect(eventFired).to.be.true;
+      expect(eventId).to.equal(testId);
+      expect(eventUrl).to.equal('https://newurl.com');
+    });
+
+    it('url-changed event bubbles and is composed', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+      const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
+
+      editButton.click();
+      await el.updateComplete;
+
+      const input = el.shadowRoot!.querySelector('.url-edit-input') as HTMLInputElement;
+      input.value = 'https://newurl.com';
+      input.dispatchEvent(new Event('input'));
+      await el.updateComplete;
+
+      let eventBubbles = false;
+      let eventComposed = false;
+      el.addEventListener('url-changed', ((e: CustomEvent) => {
+        eventBubbles = e.bubbles;
+        eventComposed = e.composed;
+      }) as EventListener);
+
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      await el.updateComplete;
+
+      expect(eventBubbles).to.be.true;
+      expect(eventComposed).to.be.true;
+    });
+
+    it('overlay is not rendered when not editing', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
+
+      const overlay = el.shadowRoot!.querySelector('.url-edit-overlay');
+      expect(overlay).to.be.null;
+    });
+  });
 });

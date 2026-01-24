@@ -12,6 +12,12 @@ export class IframePanel extends LitElement {
   @state()
   private _isHovered = false;
 
+  @state()
+  private _isEditingUrl = false;
+
+  @state()
+  private _editUrlValue = '';
+
   static override styles = css`
     :host {
       display: block;
@@ -108,6 +114,51 @@ export class IframePanel extends LitElement {
       border: none;
       display: block;
     }
+
+    .url-edit-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+
+    .url-edit-container {
+      background-color: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 8px;
+      padding: 16px;
+      width: 80%;
+      max-width: 500px;
+    }
+
+    .url-edit-label {
+      color: #e0e0e0;
+      font-size: 14px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .url-edit-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      background-color: #1a1a2e;
+      color: white;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .url-edit-input:focus {
+      outline: none;
+      border-color: #e94560;
+    }
   `;
 
   private _handleClose() {
@@ -132,6 +183,61 @@ export class IframePanel extends LitElement {
     return this._isHovered;
   }
 
+  get isEditingUrl(): boolean {
+    return this._isEditingUrl;
+  }
+
+  private _handleEditClick() {
+    this._editUrlValue = this.url;
+    this._isEditingUrl = true;
+    this.updateComplete.then(() => {
+      const input = this.shadowRoot?.querySelector('.url-edit-input') as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    });
+  }
+
+  private _handleEditInputKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      this._submitUrlEdit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      this._cancelUrlEdit();
+    }
+  }
+
+  private _handleEditInputChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    this._editUrlValue = input.value;
+  }
+
+  private _handleOverlayClick(e: Event) {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('url-edit-overlay')) {
+      this._cancelUrlEdit();
+    }
+  }
+
+  private _submitUrlEdit() {
+    this.url = this._editUrlValue;
+    this._isEditingUrl = false;
+    this.dispatchEvent(
+      new CustomEvent('url-changed', {
+        bubbles: true,
+        composed: true,
+        detail: { id: this.iframeId, url: this.url },
+      })
+    );
+  }
+
+  private _cancelUrlEdit() {
+    this._isEditingUrl = false;
+    this._editUrlValue = '';
+  }
+
   override render() {
     return html`
       <div
@@ -140,12 +246,28 @@ export class IframePanel extends LitElement {
         @mouseleave=${this._handleMouseLeave}
       >
         <div class="toolbar ${this._isHovered ? 'visible' : ''}">
-          <button class="toolbar-button edit-button" title="Edit URL">✎</button>
+          <button class="toolbar-button edit-button" @click=${this._handleEditClick} title="Edit URL">✎</button>
           <button class="toolbar-button refresh-button" title="Refresh">↻</button>
           <button class="toolbar-button fullscreen-button" title="Fullscreen">⛶</button>
           <button class="toolbar-button close-button" @click=${this._handleClose} title="Remove iframe">×</button>
         </div>
         <div class="hover-overlay"></div>
+        ${this._isEditingUrl
+          ? html`
+              <div class="url-edit-overlay" @click=${this._handleOverlayClick}>
+                <div class="url-edit-container">
+                  <label class="url-edit-label">Enter URL:</label>
+                  <input
+                    type="text"
+                    class="url-edit-input"
+                    .value=${this._editUrlValue}
+                    @input=${this._handleEditInputChange}
+                    @keydown=${this._handleEditInputKeydown}
+                  />
+                </div>
+              </div>
+            `
+          : ''}
         <iframe
           src=${this.url}
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"

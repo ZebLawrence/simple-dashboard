@@ -71,3 +71,36 @@ Added 12 tests to `src/components/iframe-panel.test.ts`:
 - Test for close button still having × symbol
 
 All 181 tests passing.
+
+### Phase 5 Task 4: Implement Edit URL functionality - COMPLETE
+
+Updated `src/components/iframe-panel.ts`:
+- Added `_isEditingUrl` state property to track edit mode
+- Added `_editUrlValue` state property to hold the input value during editing
+- Added `isEditingUrl` getter for external access to edit state
+- Added `_handleEditClick()` method to open the URL edit overlay
+- Added `_handleEditInputKeydown()` method to handle Enter (submit) and Escape (cancel)
+- Added `_handleEditInputChange()` method to update input value on change
+- Added `_handleOverlayClick()` method to cancel edit when clicking outside container
+- Added `_submitUrlEdit()` method to update URL and dispatch `url-changed` event
+- Added `_cancelUrlEdit()` method to close overlay without changing URL
+- Added CSS for `.url-edit-overlay`, `.url-edit-container`, `.url-edit-label`, and `.url-edit-input`
+- Input automatically focuses and selects all text when overlay opens
+- Overlay uses semi-transparent dark background (rgba(0,0,0,0.7))
+- Input styled to match dashboard theme with focus state
+
+Added 12 tests to `src/components/iframe-panel.test.ts`:
+- Test for isEditingUrl is false by default
+- Test for clicking edit button shows URL edit overlay
+- Test for setting isEditingUrl to true when edit button is clicked
+- Test for URL input being pre-filled with current URL
+- Test for pressing Enter submitting the new URL
+- Test for pressing Escape canceling the edit
+- Test for clicking outside the edit container canceling the edit
+- Test for clicking inside the edit container not canceling the edit
+- Test for iframe src updating when URL is submitted
+- Test for dispatching url-changed event when URL is submitted
+- Test for url-changed event bubbles and is composed
+- Test for overlay not being rendered when not editing
+
+All 193 tests passing.

@@ -52,7 +52,7 @@
         "Click outside cancels edit",
         "Verify iframe reloads with new URL"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

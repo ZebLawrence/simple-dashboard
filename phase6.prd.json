@@ -52,7 +52,7 @@
         "Apply loaded grid ratios",
         "Verify previous session restored"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

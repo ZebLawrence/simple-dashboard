@@ -233,6 +233,26 @@ export class DashboardApp extends LitElement {
     return storageService.save(state);
   }
 
+  /**
+   * Load workspace state from localStorage and apply it
+   * @returns true if state was loaded and applied, false if no saved state or invalid
+   */
+  loadState(): boolean {
+    const state = storageService.load();
+    if (!state) {
+      return false;
+    }
+
+    this.iframes = state.iframes;
+    this.grid = state.grid;
+    return true;
+  }
+
+  override connectedCallback() {
+    super.connectedCallback();
+    this.loadState();
+  }
+
   private _getNextGridPosition(): { row: number; col: number } {
     // Find all occupied positions
     const occupied = new Set(

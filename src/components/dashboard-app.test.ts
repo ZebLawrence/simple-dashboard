@@ -779,4 +779,156 @@ describe('DashboardApp', () => {
       expect(parsed.iframes.length).to.equal(3);
     });
   });
+
+  describe('load workspace state', () => {
+    beforeEach(() => {
+      localStorage.removeItem('dashboard-workspace-state');
+    });
+
+    afterEach(() => {
+      localStorage.removeItem('dashboard-workspace-state');
+    });
+
+    it('reads from localStorage on app init', async () => {
+      // Pre-populate localStorage with saved state
+      const savedState = {
+        iframes: [
+          { id: 'saved-1', url: 'https://saved-site.com', position: { row: 0, col: 0 } },
+        ],
+        grid: { columns: 1, rows: 1, columnRatios: [1], rowRatios: [1] },
+      };
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(savedState));
+
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Should have loaded the saved state
+      expect((el as any).iframes.length).to.equal(1);
+      expect((el as any).iframes[0].url).to.equal('https://saved-site.com');
+    });
+
+    it('parses JSON to WorkspaceState', async () => {
+      const savedState = {
+        iframes: [
+          { id: 'parsed-1', url: 'https://parsed.com', position: { row: 0, col: 0 } },
+          { id: 'parsed-2', url: 'https://parsed2.com', position: { row: 0, col: 1 } },
+        ],
+        grid: { columns: 2, rows: 1, columnRatios: [1, 1], rowRatios: [1] },
+      };
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(savedState));
+
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      const state = (el as any).getWorkspaceState();
+      expect(state.iframes).to.be.an('array');
+      expect(state.grid).to.be.an('object');
+    });
+
+    it('applies loaded iframes to grid', async () => {
+      const savedState = {
+        iframes: [
+          { id: 'loaded-1', url: 'https://loaded1.com', position: { row: 0, col: 0 } },
+          { id: 'loaded-2', url: 'https://loaded2.com', position: { row: 0, col: 1 } },
+          { id: 'loaded-3', url: 'https://loaded3.com', position: { row: 1, col: 0 } },
+        ],
+        grid: { columns: 2, rows: 2, columnRatios: [1, 2], rowRatios: [1, 1] },
+      };
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(savedState));
+
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      expect((el as any).iframes.length).to.equal(3);
+      expect((el as any).iframes[0].id).to.equal('loaded-1');
+      expect((el as any).iframes[1].id).to.equal('loaded-2');
+      expect((el as any).iframes[2].id).to.equal('loaded-3');
+    });
+
+    it('applies loaded grid ratios', async () => {
+      const savedState = {
+        iframes: [
+          { id: 'ratio-1', url: 'https://ratio1.com', position: { row: 0, col: 0 } },
+          { id: 'ratio-2', url: 'https://ratio2.com', position: { row: 0, col: 1 } },
+        ],
+        grid: { columns: 2, rows: 1, columnRatios: [3, 1], rowRatios: [1] },
+      };
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(savedState));
+
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      expect((el as any).grid.columnRatios).to.deep.equal([3, 1]);
+      expect((el as any).grid.rowRatios).to.deep.equal([1]);
+    });
+
+    it('restores previous session from localStorage', async () => {
+      const savedState = {
+        iframes: [
+          { id: 'session-1', url: 'https://session1.com', position: { row: 0, col: 0 } },
+          { id: 'session-2', url: 'https://session2.com', position: { row: 1, col: 0 } },
+        ],
+        grid: { columns: 1, rows: 2, columnRatios: [1], rowRatios: [2, 1] },
+      };
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(savedState));
+
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Verify the grid component receives the loaded state
+      const gridComponent = el.shadowRoot!.querySelector('iframe-grid') as any;
+      expect(gridComponent.iframes.length).to.equal(2);
+      expect(gridComponent.grid.columns).to.equal(1);
+      expect(gridComponent.grid.rows).to.equal(2);
+    });
+
+    it('loadState returns true when state is loaded', async () => {
+      const savedState = {
+        iframes: [
+          { id: 'return-1', url: 'https://return.com', position: { row: 0, col: 0 } },
+        ],
+        grid: { columns: 1, rows: 1, columnRatios: [1], rowRatios: [1] },
+      };
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(savedState));
+
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Clear and reload to test the return value
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(savedState));
+      const result = (el as any).loadState();
+      expect(result).to.be.true;
+    });
+
+    it('loadState returns false when no saved state exists', async () => {
+      localStorage.removeItem('dashboard-workspace-state');
+
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      localStorage.removeItem('dashboard-workspace-state');
+      const result = (el as any).loadState();
+      expect(result).to.be.false;
+    });
+
+    it('uses default state when localStorage is empty', async () => {
+      localStorage.removeItem('dashboard-workspace-state');
+
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+
+      // Should have default 4 iframes and 2x2 grid
+      expect((el as any).iframes.length).to.equal(4);
+      expect((el as any).grid.columns).to.equal(2);
+      expect((el as any).grid.rows).to.equal(2);
+    });
+
+    it('renders loaded iframes in the grid component', async () => {
+      const savedState = {
+        iframes: [
+          { id: 'render-1', url: 'https://render1.com', position: { row: 0, col: 0 } },
+        ],
+        grid: { columns: 1, rows: 1, columnRatios: [1], rowRatios: [1] },
+      };
+      localStorage.setItem('dashboard-workspace-state', JSON.stringify(savedState));
+
+      const el = await fixture<DashboardApp>(html`<dashboard-app></dashboard-app>`);
+      await el.updateComplete;
+
+      const gridComponent = el.shadowRoot!.querySelector('iframe-grid') as any;
+      expect(gridComponent.iframes[0].url).to.equal('https://render1.com');
+    });
+  });
 });

@@ -22,7 +22,7 @@
         "Verify component compiles without errors",
         "Check that Lit decorators work correctly"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "setup",

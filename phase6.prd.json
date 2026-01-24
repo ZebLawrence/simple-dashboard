@@ -13,7 +13,7 @@
         "Use consistent localStorage key",
         "Handle JSON stringify/parse"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

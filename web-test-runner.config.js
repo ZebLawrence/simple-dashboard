@@ -4,6 +4,7 @@ import { puppeteerLauncher } from '@web/test-runner-puppeteer';
 export default {
   files: 'src/**/*.test.ts',
   nodeResolve: true,
+  concurrency: 1,
   browsers: [
     puppeteerLauncher(),
   ],

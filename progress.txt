@@ -195,3 +195,39 @@ Added 11 tests to `src/components/iframe-grid.test.ts`:
 - Test for not firing grid-drag-complete on mouseleave when no drag is active
 
 All 76 tests passing.
+
+## Phase 4: Add/Remove Iframes Progress
+
+### Task 1: Create add-iframe-button floating action button - COMPLETE
+
+Implemented the add-iframe-button component with the following:
+
+- Created `src/components/add-iframe-button.ts` with Lit web component
+- AddIframeButton class extends LitElement
+- Styled as circular 56px button with + icon
+- Uses theme colors: `#e94560` background (primary accent), `#eaeaea` text
+- Positioned fixed at bottom-right corner (24px offset)
+- Hover state: `#ff6b6b` background, scale(1.05), enhanced shadow
+- Active state: `#c73e54` background, scale(0.95), reduced shadow
+- Focus state: 2px solid `#4a90d9` outline for accessibility
+- Dispatches `add-iframe-click` custom event on click (bubbles: true, composed: true)
+- Added accessible aria-label="Add iframe"
+
+Updated `src/components/dashboard-app.ts`:
+- Imported add-iframe-button component
+- Added `<add-iframe-button>` to render template
+
+Added export in `src/index.ts`:
+- Exported add-iframe-button component
+
+Added comprehensive tests in `src/components/add-iframe-button.test.ts`:
+- Test for rendering button element
+- Test for displaying plus icon
+- Test for circular button styling (border-radius: 50%)
+- Test for fixed positioning at bottom-right
+- Test for accessible aria-label
+- Test for dispatching add-iframe-click event on click
+- Test for event bubbles and composed properties
+- Test for button type attribute
+
+All 84 tests passing.

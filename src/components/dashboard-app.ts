@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import type { IframeConfig, GridConfig } from '../types/index.js';
 import './iframe-grid.js';
+import './add-iframe-button.js';
 
 @customElement('dashboard-app')
 export class DashboardApp extends LitElement {
@@ -71,6 +72,7 @@ export class DashboardApp extends LitElement {
             .grid=${this.grid}
           ></iframe-grid>
         </main>
+        <add-iframe-button></add-iframe-button>
       </div>
     `;
   }

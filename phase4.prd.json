@@ -13,7 +13,7 @@
         "Add hover and active state styles",
         "Verify button appears on page and is clickable"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

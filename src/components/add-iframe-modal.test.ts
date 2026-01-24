@@ -287,4 +287,198 @@ describe('AddIframeModal', () => {
       expect(composed).to.be.true;
     });
   });
+
+  // Add iframe submission tests
+  describe('add iframe submission', () => {
+    it('dispatches add-iframe event with valid URL when Add is clicked', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const input = el.shadowRoot!.querySelector('#url-input') as HTMLInputElement;
+      input.value = 'https://example.com';
+
+      let eventDetail: { url: string } | null = null;
+      el.addEventListener('add-iframe', ((e: CustomEvent) => {
+        eventDetail = e.detail;
+      }) as EventListener);
+
+      const addButton = el.shadowRoot!.querySelector('.add-button') as HTMLButtonElement;
+      addButton.click();
+
+      expect(eventDetail).to.not.be.null;
+      expect(eventDetail!.url).to.equal('https://example.com');
+    });
+
+    it('closes modal after successful add', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const input = el.shadowRoot!.querySelector('#url-input') as HTMLInputElement;
+      input.value = 'https://example.com';
+
+      const addButton = el.shadowRoot!.querySelector('.add-button') as HTMLButtonElement;
+      addButton.click();
+      await el.updateComplete;
+
+      expect(el.open).to.be.false;
+    });
+
+    it('clears input field after successful add', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const input = el.shadowRoot!.querySelector('#url-input') as HTMLInputElement;
+      input.value = 'https://example.com';
+
+      const addButton = el.shadowRoot!.querySelector('.add-button') as HTMLButtonElement;
+      addButton.click();
+      await el.updateComplete;
+
+      expect(input.value).to.equal('');
+    });
+
+    it('shows error state for empty URL', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const addButton = el.shadowRoot!.querySelector('.add-button') as HTMLButtonElement;
+      addButton.click();
+      await el.updateComplete;
+
+      const input = el.shadowRoot!.querySelector('#url-input') as HTMLInputElement;
+      expect(input.classList.contains('error')).to.be.true;
+
+      const errorMessage = el.shadowRoot!.querySelector('.error-message') as HTMLElement;
+      expect(errorMessage.classList.contains('visible')).to.be.true;
+    });
+
+    it('shows error state for invalid URL', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const input = el.shadowRoot!.querySelector('#url-input') as HTMLInputElement;
+      input.value = 'not-a-valid-url';
+
+      const addButton = el.shadowRoot!.querySelector('.add-button') as HTMLButtonElement;
+      addButton.click();
+      await el.updateComplete;
+
+      expect(input.classList.contains('error')).to.be.true;
+      expect(el.open).to.be.true; // Should stay open
+    });
+
+    it('does not dispatch add-iframe event for invalid URL', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const input = el.shadowRoot!.querySelector('#url-input') as HTMLInputElement;
+      input.value = 'invalid-url';
+
+      let eventFired = false;
+      el.addEventListener('add-iframe', () => {
+        eventFired = true;
+      });
+
+      const addButton = el.shadowRoot!.querySelector('.add-button') as HTMLButtonElement;
+      addButton.click();
+
+      expect(eventFired).to.be.false;
+      // Clean up - close the modal
+      el.open = false;
+      await el.updateComplete;
+    });
+
+    it('clears error state when user types', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      // First trigger error state
+      const addButton = el.shadowRoot!.querySelector('.add-button') as HTMLButtonElement;
+      addButton.click();
+      await el.updateComplete;
+
+      const input = el.shadowRoot!.querySelector('#url-input') as HTMLInputElement;
+      expect(input.classList.contains('error')).to.be.true;
+
+      // Now type in the input
+      input.dispatchEvent(new Event('input'));
+      await el.updateComplete;
+
+      expect(input.classList.contains('error')).to.be.false;
+      // Clean up - close the modal
+      el.open = false;
+      await el.updateComplete;
+    });
+
+    it('accepts http URLs', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const input = el.shadowRoot!.querySelector('#url-input') as HTMLInputElement;
+      input.value = 'http://example.com';
+
+      let eventDetail: { url: string } | null = null;
+      el.addEventListener('add-iframe', ((e: CustomEvent) => {
+        eventDetail = e.detail;
+      }) as EventListener);
+
+      const addButton = el.shadowRoot!.querySelector('.add-button') as HTMLButtonElement;
+      addButton.click();
+
+      expect(eventDetail).to.not.be.null;
+      expect(eventDetail!.url).to.equal('http://example.com');
+    });
+
+    it('rejects URLs with invalid protocols', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const input = el.shadowRoot!.querySelector('#url-input') as HTMLInputElement;
+      input.value = 'ftp://example.com';
+
+      let eventFired = false;
+      el.addEventListener('add-iframe', () => {
+        eventFired = true;
+      });
+
+      const addButton = el.shadowRoot!.querySelector('.add-button') as HTMLButtonElement;
+      addButton.click();
+      await el.updateComplete;
+
+      expect(eventFired).to.be.false;
+      expect(input.classList.contains('error')).to.be.true;
+      // Clean up - close the modal
+      el.open = false;
+      await el.updateComplete;
+    });
+
+    it('add-iframe event bubbles and is composed', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const input = el.shadowRoot!.querySelector('#url-input') as HTMLInputElement;
+      input.value = 'https://example.com';
+
+      let bubbles = false;
+      let composed = false;
+      el.addEventListener('add-iframe', (e: Event) => {
+        bubbles = e.bubbles;
+        composed = e.composed;
+      });
+
+      const addButton = el.shadowRoot!.querySelector('.add-button') as HTMLButtonElement;
+      addButton.click();
+
+      expect(bubbles).to.be.true;
+      expect(composed).to.be.true;
+    });
+
+    it('trims whitespace from URL', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const input = el.shadowRoot!.querySelector('#url-input') as HTMLInputElement;
+      input.value = '  https://example.com  ';
+
+      let eventDetail: { url: string } | null = null;
+      el.addEventListener('add-iframe', ((e: CustomEvent) => {
+        eventDetail = e.detail;
+      }) as EventListener);
+
+      const addButton = el.shadowRoot!.querySelector('.add-button') as HTMLButtonElement;
+      addButton.click();
+
+      expect(eventDetail).to.not.be.null;
+      expect(eventDetail!.url).to.equal('https://example.com');
+    });
+  });
 });

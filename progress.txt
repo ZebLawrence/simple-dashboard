@@ -1,277 +1,3 @@
-## Phase 3: Grid Resizing Progress
-
-### Task 1: Create grid-divider component for drag handles - COMPLETE
-
-Implemented the grid-divider component with the following:
-
-- Created `src/components/grid-divider.ts` with Lit web component
-- GridDivider class has `orientation` property ('horizontal' | 'vertical') and `index` property
-- Styled as thin 4px bar with dark blue (#0f3460) background, highlight on hover (#4a90d9)
-- Cursor styles: `col-resize` for vertical, `row-resize` for horizontal dividers
-- Dispatches `divider-drag-start` custom event on mousedown with orientation, index, and start coordinates
-- Has `setDragging()` method for visual feedback control
-
-Updated `src/components/iframe-grid.ts`:
-
-- Integrated grid-divider into the grid layout
-- Modified grid template to include 4px divider tracks between cells (e.g., "1fr 4px 2fr" instead of "1fr 2fr")
-- Renders vertical dividers between columns (n-1 dividers for n columns)
-- Renders horizontal dividers between rows (n-1 dividers for n rows)
-- Dividers span the full height/width of the grid appropriately
-
-Added comprehensive tests in `src/components/grid-divider.test.ts`:
-- Tests for orientation, index properties
-- Tests for cursor styles per orientation
-- Tests for divider-drag-start event dispatch
-- Tests for dragging visual state
-
-Updated existing tests in `src/components/iframe-grid.test.ts`:
-- Updated grid template tests to expect divider track format
-- Added tests for vertical/horizontal divider rendering
-- Added test for 1x1 grid (no dividers)
-- Added test for divider index assignment
-
-All 34 tests passing.
-
-### Task 2: Implement mousedown drag start on divider - COMPLETE
-
-Implemented drag start handling in `iframe-grid.ts`:
-
-- Added `DragState` interface to track drag operation state:
-  - `active`: whether a drag is in progress
-  - `orientation`: 'horizontal' or 'vertical'
-  - `index`: which divider is being dragged
-  - `startX`, `startY`: initial mouse coordinates
-  - `initialColumnRatios`, `initialRowRatios`: ratios at drag start (independent copies)
-- Added `@state() dragState` property to track current drag
-- Added `@divider-drag-start` event listener on grid container
-- `handleDragStart()` method captures event details and stores initial ratios
-- Dispatches `grid-drag-start` custom event to parent for external coordination
-- Added `getDragState()` method to expose current drag state
-- Added `clearDragState()` method to reset drag state and remove visual feedback
-
-Added 7 tests to `iframe-grid.test.ts`:
-- Test for storing drag state on divider-drag-start
-- Test for capturing initial column ratios
-- Test for capturing initial row ratios
-- Test for dispatching grid-drag-start event
-- Test for clearDragState method
-- Test for removing dragging class on clearDragState
-- Test for storing independent copy of ratios (not reference)
-
-All 41 tests passing.
-
-### Task 3: Implement mousemove drag tracking - COMPLETE
-
-Implemented mousemove drag tracking in `src/components/iframe-grid.ts`:
-
-- Added `boundHandleMouseMove` property to store the bound event handler reference
-- Added document-level mousemove listener in `handleDragStart()` method
-- Implemented `handleMouseMove()` method that:
-  - Returns early if no active drag state
-  - Gets the grid container dimensions for pixel-to-ratio conversion
-  - For vertical dividers: calculates deltaX, converts to ratio adjustment based on content width
-  - For horizontal dividers: calculates deltaY, converts to ratio adjustment based on content height
-  - Adjusts adjacent column/row ratios (one increases, other decreases by same amount)
-  - Enforces minimum ratio of 0.1 to prevent panels from disappearing
-  - Dispatches `ratio-change` custom event with new ratios
-- Added `removeMouseMoveListener()` method to clean up the document listener
-- Updated `clearDragState()` to call `removeMouseMoveListener()` for proper cleanup
-
-The ratio calculation works by:
-1. Computing total content size (excluding divider tracks)
-2. Converting pixel delta to ratio delta using: `ratioPerPixel = totalRatios / contentSize`
-3. Adding delta to the column/row before the divider, subtracting from the one after
-4. Clamping both values to minimum 0.1
-
-Added 9 tests to `src/components/iframe-grid.test.ts`:
-- Test for adding mousemove listener on drag start
-- Test for dispatching ratio-change event on vertical divider mousemove
-- Test for dispatching ratio-change event on horizontal divider mousemove
-- Test for adjusting adjacent column ratios based on delta for vertical drag
-- Test for adjusting adjacent row ratios based on delta for horizontal drag
-- Test for enforcing minimum ratio of 0.1
-- Test for removing mousemove listener on clearDragState
-- Test for not dispatching ratio-change when no drag is active
-- Test for smooth tracking without jitter on multiple mousemove events
-
-All 50 tests passing.
-
-### Task 4: Update CSS Grid template on drag - COMPLETE
-
-Implemented real-time CSS grid template updates during drag in `src/components/iframe-grid.ts`:
-
-- Modified `handleMouseMove()` method to update `this.grid` property directly during drag
-- For vertical dividers: Updates `columnRatios` array in the grid property
-- For horizontal dividers: Updates `rowRatios` array in the grid property
-- Uses spread operator to create new object reference, triggering Lit's reactive update
-- CSS `grid-template-columns` and `grid-template-rows` recalculate automatically via `getGridTemplateColumns()` and `getGridTemplateRows()` methods
-- The `ratio-change` event is still dispatched for external listeners
-
-The implementation approach:
-1. During drag, calculate new ratios (as before)
-2. Update `this.grid = { ...this.grid, columnRatios: newColumnRatios }` (or rowRatios)
-3. Lit detects the property change and re-renders
-4. Re-render calls `getGridTemplateColumns()` / `getGridTemplateRows()` which use the updated ratios
-5. New CSS template is applied to the grid container
-6. Iframe panels resize visually in real-time
-
-Added 5 tests to `src/components/iframe-grid.test.ts`:
-- Test for updating columnRatios in grid property on vertical divider drag
-- Test for updating rowRatios in grid property on horizontal divider drag
-- Test for updating CSS grid-template-columns in real-time during drag
-- Test for updating CSS grid-template-rows in real-time during drag
-- Test for iframe panels resizing visually during drag
-
-All 55 tests passing.
-
-### Task 5: Implement mouseup drag end - COMPLETE
-
-Implemented mouseup drag end handling in `src/components/iframe-grid.ts`:
-
-- Added `boundHandleMouseUp` property to store the bound mouseup handler reference
-- Added document-level mouseup listener in `handleDragStart()` method alongside the mousemove listener
-- Implemented `handleMouseUp()` method that:
-  - Returns early if no active drag state
-  - Dispatches `grid-drag-complete` custom event with final orientation, index, columnRatios, and rowRatios
-  - Calls `clearDragState()` to clean up
-- Added `removeMouseUpListener()` method to clean up the document mouseup listener
-- Updated `clearDragState()` to call both `removeMouseMoveListener()` and `removeMouseUpListener()`
-
-The drag lifecycle is now complete:
-1. `mousedown` on divider → `handleDragStart()` → sets drag state, adds listeners, dispatches `grid-drag-start`
-2. `mousemove` on document → `handleMouseMove()` → updates ratios, dispatches `ratio-change`
-3. `mouseup` on document → `handleMouseUp()` → dispatches `grid-drag-complete`, calls `clearDragState()`
-
-Added 10 tests to `src/components/iframe-grid.test.ts`:
-- Test for adding mouseup listener to document on drag start
-- Test for removing mousemove listener on mouseup
-- Test for removing mouseup listener on mouseup
-- Test for clearing drag state on mouseup
-- Test for removing divider dragging class on mouseup
-- Test for dispatching grid-drag-complete event on mouseup
-- Test for finalizing ratio values in grid-drag-complete event
-- Test for ratios persisting after drag ends
-- Test for not dispatching grid-drag-complete when no drag is active
-- Test for full drag cycle (start → change → complete event sequence)
-
-All 65 tests passing.
-
-### Task 6: Handle edge cases for grid resizing - COMPLETE
-
-Implemented comprehensive edge case handling in `src/components/iframe-grid.ts`:
-
-1. **Enforce minimum panel size (100px)**:
-   - Added `MIN_PANEL_SIZE_PX = 100` constant
-   - Calculates minimum ratio based on pixel size relative to content dimensions
-   - Prevents panels from being resized smaller than 100px
-
-2. **Prevent ratios from going negative**:
-   - When one ratio hits the minimum, the adjacent ratio is adjusted to maintain the sum
-   - Both ratios are guaranteed to remain positive
-
-3. **Handle mouse leaving viewport during drag**:
-   - Added `boundHandleMouseLeave` property to store the listener reference
-   - Added `mouseleave` listener on `document.documentElement` when drag starts
-   - `handleMouseLeave()` method ends the drag gracefully, dispatching `grid-drag-complete` event
-   - `removeMouseLeaveListener()` method cleans up the listener
-   - Updated `clearDragState()` to call `removeMouseLeaveListener()`
-
-4. **Ensure ratios always sum to total correctly**:
-   - When clamping occurs, the sum of the two adjacent ratios is preserved
-   - Instead of clamping both independently (which could change the sum), we set one to minimum and compute the other as `originalSum - minimum`
-
-Added 11 tests to `src/components/iframe-grid.test.ts`:
-- Test for enforcing minimum panel size of 100px for columns
-- Test for enforcing minimum panel size of 100px for rows
-- Test for preventing ratios from going negative when dragging left
-- Test for preventing ratios from going negative when dragging up
-- Test for handling mouse leaving viewport during drag by ending drag
-- Test for removing mouseleave listener on clearDragState
-- Test for ensuring ratios always sum to the same total after drag
-- Test for ensuring ratios sum correctly even with extreme drag
-- Test for working correctly with various grid configurations (3 columns)
-- Test for ensuring no panel can be resized to invisible (always visible)
-- Test for not firing grid-drag-complete on mouseleave when no drag is active
-
-All 76 tests passing.
-
-## Phase 4: Add/Remove Iframes Progress
-
-### Task 1: Create add-iframe-button floating action button - COMPLETE
-
-Implemented the add-iframe-button component with the following:
-
-- Created `src/components/add-iframe-button.ts` with Lit web component
-- AddIframeButton class extends LitElement
-- Styled as circular 56px button with + icon
-- Uses theme colors: `#e94560` background (primary accent), `#eaeaea` text
-- Positioned fixed at bottom-right corner (24px offset)
-- Hover state: `#ff6b6b` background, scale(1.05), enhanced shadow
-- Active state: `#c73e54` background, scale(0.95), reduced shadow
-- Focus state: 2px solid `#4a90d9` outline for accessibility
-- Dispatches `add-iframe-click` custom event on click (bubbles: true, composed: true)
-- Added accessible aria-label="Add iframe"
-
-Updated `src/components/dashboard-app.ts`:
-- Imported add-iframe-button component
-- Added `<add-iframe-button>` to render template
-
-Added export in `src/index.ts`:
-- Exported add-iframe-button component
-
-Added comprehensive tests in `src/components/add-iframe-button.test.ts`:
-- Test for rendering button element
-- Test for displaying plus icon
-- Test for circular button styling (border-radius: 50%)
-- Test for fixed positioning at bottom-right
-- Test for accessible aria-label
-- Test for dispatching add-iframe-click event on click
-- Test for event bubbles and composed properties
-- Test for button type attribute
-
-All 84 tests passing.
-
-### Task 2: Create add-iframe-modal dialog component - COMPLETE
-
-Implemented the add-iframe-modal component with the following:
-
-- Created `src/components/add-iframe-modal.ts` with Lit web component
-- AddIframeModal class extends LitElement with `open` property (Boolean, reflected)
-- Modal is hidden by default (display: none), shown when open attribute is present
-- Dark backdrop overlay with rgba(0, 0, 0, 0.7) covering full viewport
-- Modal centered on screen using flexbox (align-items: center, justify-content: center)
-- Dark theme styling: `#1a1a2e` modal background, `#0f3460` borders
-- URL input field with type="url", placeholder, and label
-- Cancel button with transparent background, styled for dark theme
-- Add button with primary accent color (`#e94560`)
-- Modal header "Add Iframe" with appropriate styling
-- Focus styles on inputs and buttons (2px solid #4a90d9 outline)
-- Buttons have type="button" attribute for accessibility
-- Label properly associated with input via for/id attributes
-
-Added export in `src/index.ts`:
-- Exported add-iframe-modal component
-
-Added comprehensive tests in `src/components/add-iframe-modal.test.ts`:
-- Test for being hidden by default
-- Test for being visible when open is true
-- Test for open property defaulting to false
-- Test for reflecting open property to attribute
-- Test for rendering dark backdrop overlay
-- Test for rendering modal dialog
-- Test for centering modal on screen
-- Test for dark theme styling
-- Test for rendering URL input field
-- Test for rendering label for URL input
-- Test for label-input association
-- Test for rendering Cancel button
-- Test for rendering Add button
-- Test for modal header
-- Test for input placeholder text
-- Test for button type attributes
-
-All 100 tests passing.
 
 ### Task 3: Implement modal open/close behavior - COMPLETE
 
@@ -311,3 +37,35 @@ Added 11 tests to `src/components/add-iframe-modal.test.ts`:
 - Test for modal-close event bubbles and is composed
 
 All 111 tests passing.
+
+### Task 4: Implement add iframe submission - COMPLETE
+
+Implemented add iframe submission with the following:
+
+Updated `src/components/add-iframe-modal.ts`:
+- Added `hasError` state property to track validation error state
+- Added `_isValidUrl()` method to validate URL format (http/https only)
+- Implemented `_handleAdd()` method that:
+  - Trims and validates the URL input
+  - Shows error state for empty or invalid URLs
+  - Dispatches `add-iframe` custom event with URL in detail
+  - Clears input field after successful add
+  - Closes modal after successful add
+- Added `_handleInput()` method to clear error state when user types
+- Added CSS for error state styling (red border, error message)
+- Added error message element below input
+
+Added 11 tests to `src/components/add-iframe-modal.test.ts`:
+- Test for dispatching add-iframe event with valid URL
+- Test for closing modal after successful add
+- Test for clearing input field after successful add
+- Test for showing error state for empty URL
+- Test for showing error state for invalid URL
+- Test for not dispatching add-iframe event for invalid URL
+- Test for clearing error state when user types
+- Test for accepting http URLs
+- Test for rejecting URLs with invalid protocols (e.g., ftp)
+- Test for add-iframe event bubbles and is composed
+- Test for trimming whitespace from URL
+
+All 122 tests passing.

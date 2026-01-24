@@ -52,7 +52,7 @@
         "Validate URL format before accepting",
         "Show error state for invalid URL"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "functional",

@@ -6,6 +6,9 @@ export class AddIframeModal extends LitElement {
   @property({ type: Boolean, reflect: true })
   open = false;
 
+  @property({ type: Boolean })
+  private hasError = false;
+
   @query('#url-input')
   private urlInput!: HTMLInputElement;
 
@@ -121,6 +124,27 @@ export class AddIframeModal extends LitElement {
       box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.2);
     }
 
+    input.error {
+      border-color: #e94560;
+      box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.2);
+    }
+
+    input.error:focus {
+      border-color: #e94560;
+      box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.2);
+    }
+
+    .error-message {
+      color: #e94560;
+      font-size: 12px;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .error-message.visible {
+      display: block;
+    }
+
     input::placeholder {
       color: #666;
     }
@@ -182,8 +206,13 @@ export class AddIframeModal extends LitElement {
             <input
               id="url-input"
               type="url"
+              class="${this.hasError ? 'error' : ''}"
               placeholder="https://example.com"
+              @input=${this._handleInput}
             />
+            <div class="error-message ${this.hasError ? 'visible' : ''}">
+              Please enter a valid URL
+            </div>
           </div>
           <div class="button-group">
             <button
@@ -218,8 +247,48 @@ export class AddIframeModal extends LitElement {
     this._close();
   }
 
+  private _handleInput() {
+    // Clear error state when user types
+    if (this.hasError) {
+      this.hasError = false;
+    }
+  }
+
+  private _isValidUrl(url: string): boolean {
+    if (!url.trim()) {
+      return false;
+    }
+    try {
+      const parsedUrl = new URL(url);
+      return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  }
+
   private _handleAdd() {
-    // To be implemented in task 4
+    const url = this.urlInput.value.trim();
+
+    if (!this._isValidUrl(url)) {
+      this.hasError = true;
+      return;
+    }
+
+    // Dispatch add-iframe event with the URL
+    this.dispatchEvent(
+      new CustomEvent('add-iframe', {
+        bubbles: true,
+        composed: true,
+        detail: { url },
+      })
+    );
+
+    // Clear the input
+    this.urlInput.value = '';
+    this.hasError = false;
+
+    // Close the modal
+    this._close();
   }
 
   private _close() {

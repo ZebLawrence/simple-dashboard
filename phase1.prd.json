@@ -33,7 +33,7 @@
         "Create index.html entry point",
         "Run vite dev server and verify hot reload works"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "setup",

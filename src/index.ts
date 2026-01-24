@@ -1,2 +1,2 @@
 // Entry point for simple-dashboard
-export {};
+export * from './components/test-element.js';

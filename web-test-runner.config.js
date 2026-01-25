@@ -6,7 +6,11 @@ export default {
   nodeResolve: true,
   concurrency: 1,
   browsers: [
-    puppeteerLauncher(),
+    puppeteerLauncher({
+      launchOptions: {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      },
+    }),
   ],
   plugins: [
     esbuildPlugin({

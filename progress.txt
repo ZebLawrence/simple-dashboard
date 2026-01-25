@@ -85,3 +85,32 @@ Implemented smooth CSS animations throughout the application:
 
 Tests: 287 passed, 0 failed
 Typecheck: Pass
+
+## Phase 7: Style grid dividers and borders - COMPLETE
+
+Enhanced grid dividers for better usability and visual consistency:
+
+1. **Added larger hit area for easier grabbing** (grid-divider.ts)
+   - Created a 12px transparent hit area wrapper (.divider-hit-area)
+   - Visible divider remains 4px but is centered within the larger hit area
+   - Users can now grab dividers more easily without needing pixel-perfect precision
+
+2. **Integrated with centralized theme colors** (grid-divider.ts)
+   - Imported themeColors from src/styles/theme.ts
+   - Using themeColors.border (#0f3460) for default divider color
+   - Using themeColors.focus (#4a90d9) for hover/dragging state
+
+3. **Existing features verified**:
+   - Subtle borders between iframe panels already exist (iframe-panel.ts line 42)
+   - Visible hover state with glow effect already implemented
+   - Resize cursor (col-resize/row-resize) properly applied to hit area
+   - Divider colors match dark theme palette
+
+4. **Updated tests** (grid-divider.test.ts, iframe-grid.test.ts)
+   - Added test for hit area element existence
+   - Updated cursor tests to check .divider-hit-area instead of .divider
+   - Updated mousedown event dispatching to target hit area
+   - All dragging class checks now properly query the inner .divider element
+
+Tests: 288 passed, 0 failed
+Typecheck: Pass

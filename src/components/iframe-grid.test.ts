@@ -308,8 +308,8 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
       const dragState = el.getDragState();
       expect(dragState).to.not.be.null;
@@ -335,8 +335,8 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 50 }));
 
       const dragState = el.getDragState();
       expect(dragState!.initialColumnRatios).to.deep.equal([1, 2, 3]);
@@ -357,8 +357,8 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 50 }));
 
       const dragState = el.getDragState();
       expect(dragState!.initialRowRatios).to.deep.equal([2, 1, 3]);
@@ -383,8 +383,8 @@ describe('IframeGrid', () => {
       }) as EventListener);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
       expect(eventDetail).to.not.be.null;
       expect((eventDetail as any).orientation).to.equal('vertical');
@@ -402,8 +402,8 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
       expect(el.getDragState()).to.not.be.null;
 
@@ -422,14 +422,15 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      const dividerLine = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
-      expect(dividerInner.classList.contains('dragging')).to.be.true;
+      expect(dividerLine.classList.contains('dragging')).to.be.true;
 
       el.clearDragState();
 
-      expect(dividerInner.classList.contains('dragging')).to.be.false;
+      expect(dividerLine.classList.contains('dragging')).to.be.false;
     });
 
     it('stores independent copy of ratios (not reference)', async () => {
@@ -446,8 +447,8 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 50 }));
 
       const dragState = el.getDragState();
 
@@ -470,8 +471,8 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
       // The boundHandleMouseMove should be set
       expect((el as any).boundHandleMouseMove).to.not.be.null;
@@ -497,8 +498,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
@@ -531,8 +532,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
 
       // Simulate mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 150 }));
@@ -565,8 +566,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate mousemove to the right (positive delta)
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
@@ -599,8 +600,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
 
       // Simulate mousemove downward (positive delta)
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 150 }));
@@ -633,8 +634,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate extreme mousemove that would make second column negative
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 10000, clientY: 50 }));
@@ -656,8 +657,8 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
       expect((el as any).boundHandleMouseMove).to.not.be.null;
 
@@ -706,8 +707,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate multiple mousemove events
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 110, clientY: 50 }));
@@ -745,8 +746,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
@@ -773,8 +774,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
 
       // Simulate mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 150 }));
@@ -805,8 +806,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
@@ -842,8 +843,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
 
       // Simulate mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 150 }));
@@ -875,8 +876,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate mousemove to increase first column
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 200, clientY: 50 }));
@@ -907,8 +908,8 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${defaultIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
       // The boundHandleMouseUp should be set
       expect((el as any).boundHandleMouseUp).to.not.be.null;
@@ -920,8 +921,8 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${defaultIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
       expect((el as any).boundHandleMouseMove).to.not.be.null;
 
@@ -935,8 +936,8 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${defaultIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
       expect((el as any).boundHandleMouseUp).to.not.be.null;
 
@@ -950,8 +951,8 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${defaultIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
       expect(el.getDragState()).to.not.be.null;
 
@@ -965,15 +966,16 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${defaultIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      const dividerLine = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
-      expect(dividerInner.classList.contains('dragging')).to.be.true;
+      expect(dividerLine.classList.contains('dragging')).to.be.true;
 
       // Simulate mouseup
       document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 200 }));
 
-      expect(dividerInner.classList.contains('dragging')).to.be.false;
+      expect(dividerLine.classList.contains('dragging')).to.be.false;
     });
 
     it('dispatches grid-drag-complete event on mouseup', async () => {
@@ -996,8 +998,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Move to change ratios
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
@@ -1032,8 +1034,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Move to change ratios
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
@@ -1061,8 +1063,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Move to change ratios
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
@@ -1117,8 +1119,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Move
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
@@ -1152,8 +1154,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate extreme drag that would make second column very small
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50000, clientY: 50 }));
@@ -1186,8 +1188,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
 
       // Simulate extreme drag that would make second row very small
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 50000 }));
@@ -1220,8 +1222,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate extreme drag to the left that would make first column negative
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: -50000, clientY: 50 }));
@@ -1248,8 +1250,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 50, clientY: 100 }));
 
       // Simulate extreme drag upward that would make first row negative
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: -50000 }));
@@ -1281,8 +1283,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Move to change ratios
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
@@ -1311,8 +1313,8 @@ describe('IframeGrid', () => {
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes}></iframe-grid>`);
 
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
       expect((el as any).boundHandleMouseLeave).to.not.be.null;
 
@@ -1338,8 +1340,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
@@ -1369,8 +1371,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate extreme mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50000, clientY: 50 }));
@@ -1402,8 +1404,8 @@ describe('IframeGrid', () => {
       // Start drag on the first divider (between column 0 and 1)
       const dividers = el.shadowRoot!.querySelectorAll('grid-divider[orientation="vertical"]');
       const divider = dividers[0] as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
@@ -1434,8 +1436,8 @@ describe('IframeGrid', () => {
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
-      const dividerInner = divider.shadowRoot!.querySelector('.divider') as HTMLElement;
-      dividerInner.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
+      const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
+      hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
       // Simulate extreme drag in both directions
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 1000000, clientY: 50 }));

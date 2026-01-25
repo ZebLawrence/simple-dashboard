@@ -31,13 +31,20 @@ describe('GridDivider', () => {
     expect(divider).to.exist;
   });
 
+  it('contains a hit area element for easier grabbing', async () => {
+    const el = await fixture<GridDivider>(html`<grid-divider></grid-divider>`);
+
+    const hitArea = el.shadowRoot!.querySelector('.divider-hit-area');
+    expect(hitArea).to.exist;
+  });
+
   it('has col-resize cursor for vertical orientation', async () => {
     const el = await fixture<GridDivider>(
       html`<grid-divider orientation="vertical"></grid-divider>`
     );
 
-    const divider = el.shadowRoot!.querySelector('.divider')! as HTMLElement;
-    const styles = window.getComputedStyle(divider);
+    const hitArea = el.shadowRoot!.querySelector('.divider-hit-area')! as HTMLElement;
+    const styles = window.getComputedStyle(hitArea);
     expect(styles.cursor).to.equal('col-resize');
   });
 
@@ -46,8 +53,8 @@ describe('GridDivider', () => {
       html`<grid-divider orientation="horizontal"></grid-divider>`
     );
 
-    const divider = el.shadowRoot!.querySelector('.divider')! as HTMLElement;
-    const styles = window.getComputedStyle(divider);
+    const hitArea = el.shadowRoot!.querySelector('.divider-hit-area')! as HTMLElement;
+    const styles = window.getComputedStyle(hitArea);
     expect(styles.cursor).to.equal('row-resize');
   });
 
@@ -61,8 +68,8 @@ describe('GridDivider', () => {
       eventDetail = e.detail;
     }) as EventListener);
 
-    const divider = el.shadowRoot!.querySelector('.divider')! as HTMLElement;
-    divider.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
+    const hitArea = el.shadowRoot!.querySelector('.divider-hit-area')! as HTMLElement;
+    hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 200 }));
 
     expect(eventDetail).to.deep.include({
       orientation: 'vertical',
@@ -75,8 +82,9 @@ describe('GridDivider', () => {
   it('adds dragging class on mousedown', async () => {
     const el = await fixture<GridDivider>(html`<grid-divider></grid-divider>`);
 
+    const hitArea = el.shadowRoot!.querySelector('.divider-hit-area')! as HTMLElement;
     const divider = el.shadowRoot!.querySelector('.divider')! as HTMLElement;
-    divider.dispatchEvent(new MouseEvent('mousedown', { clientX: 0, clientY: 0 }));
+    hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 0, clientY: 0 }));
 
     expect(divider.classList.contains('dragging')).to.be.true;
   });

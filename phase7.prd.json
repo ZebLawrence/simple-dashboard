@@ -39,7 +39,7 @@
         "Match divider colors to dark theme",
         "Verify clean visual separation between panels"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "testing",

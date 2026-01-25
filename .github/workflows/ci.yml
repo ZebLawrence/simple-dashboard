@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
         
+      - name: Install Puppeteer Chrome
+        run: pnpm exec puppeteer browsers install chrome
+        
       - name: TypeScript check
         run: pnpm typecheck
         

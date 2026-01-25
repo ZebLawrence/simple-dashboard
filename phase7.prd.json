@@ -115,7 +115,7 @@
         "Verify panel widths changed",
         "Verify ratios persisted after reload"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "testing",

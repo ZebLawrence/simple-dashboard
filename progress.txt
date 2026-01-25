@@ -174,3 +174,34 @@ All tests use beforeEach to clear localStorage for clean state.
 E2E Tests: 10 passed, 0 failed
 Unit Tests: 288 passed, 0 failed
 Typecheck: Pass
+
+## Phase 7: Write Playwright e2e test for grid resizing - COMPLETE
+
+Created comprehensive e2e tests in e2e/app.spec.ts for the grid resizing workflow:
+
+1. **Test: can resize grid by dragging vertical divider** (lines 280-333)
+   - Start with 2x2 grid of iframes (adds 4 iframes)
+   - Locate vertical divider between panels
+   - Dispatch mousedown on hit area, mousemove on document, mouseup on document
+   - Verify first panel width increased after drag
+
+2. **Test: can resize grid by dragging horizontal divider** (lines 352-395)
+   - Start with 2x2 grid of iframes
+   - Locate horizontal divider between rows
+   - Perform drag operation moving divider down
+   - Verify first panel height increased after drag
+
+3. **Test: grid ratios persist after page reload** (lines 398-464)
+   - Start with 2x2 grid of iframes
+   - Drag vertical divider to resize panels
+   - Reload the page
+   - Verify panel widths match the resized widths (within 5px tolerance)
+
+Implementation notes:
+- Used dispatchEvent approach for vertical divider tests because the hit area is a shadow DOM element with negative positioning that extends outside the host element bounds
+- Horizontal divider tests work with standard page.mouse operations because the hit area spans full width
+- Tests properly handle shadow DOM by using evaluate() to access shadow root elements
+
+E2E Tests: 13 passed, 0 failed
+Unit Tests: 288 passed, 0 failed
+Typecheck: Pass

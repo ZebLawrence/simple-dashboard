@@ -255,3 +255,225 @@ test.describe('Removing Iframe', () => {
     await expect(modal).toHaveAttribute('open', '');
   });
 });
+
+test.describe('Grid Resizing', () => {
+  // Helper function to add an iframe
+  async function addIframe(page: import('@playwright/test').Page, url: string) {
+    const dashboardApp = page.locator('dashboard-app');
+    const addButton = dashboardApp.locator('add-iframe-button');
+    await addButton.locator('button').click();
+
+    const modal = dashboardApp.locator('add-iframe-modal');
+    await expect(modal).toHaveAttribute('open', '');
+    await modal.locator('#url-input').fill(url);
+    await modal.locator('.add-button').click();
+    await expect(modal).not.toHaveAttribute('open', '');
+  }
+
+  test.beforeEach(async ({ page }) => {
+    // Clear localStorage before each test to start with clean state
+    await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+  });
+
+  test('can resize grid by dragging vertical divider', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Step 1: Start with 2x2 grid of iframes (need 4 iframes)
+    await addIframe(page, 'https://example.com/1');
+    await addIframe(page, 'https://example.com/2');
+    await addIframe(page, 'https://example.com/3');
+    await addIframe(page, 'https://example.com/4');
+
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanels = iframeGrid.locator('iframe-panel');
+    await expect(iframePanels).toHaveCount(4);
+
+    // Get initial panel widths
+    const firstPanel = iframePanels.first();
+    const initialFirstPanelBox = await firstPanel.boundingBox();
+    expect(initialFirstPanelBox).not.toBeNull();
+
+    // Step 2: Locate vertical divider between panels
+    const verticalDivider = iframeGrid.locator('grid-divider[orientation="vertical"]').first();
+    await expect(verticalDivider).toBeVisible();
+
+    // Step 3: Drag divider to new position using dispatchEvent
+    // This simulates the drag operation by directly triggering events on the shadow DOM elements
+    const dragDistance = 100;
+
+    // Get initial position and trigger drag via events in the page context
+    await verticalDivider.evaluate((el, distance) => {
+      const hitArea = el.shadowRoot?.querySelector('.divider-hit-area');
+      if (!hitArea) throw new Error('Hit area not found');
+
+      const rect = hitArea.getBoundingClientRect();
+      const startX = rect.x + rect.width / 2;
+      const startY = rect.y + rect.height / 2;
+
+      // Dispatch mousedown on hit area
+      hitArea.dispatchEvent(new MouseEvent('mousedown', {
+        bubbles: true,
+        cancelable: true,
+        clientX: startX,
+        clientY: startY,
+      }));
+
+      // Dispatch mousemove on document
+      document.dispatchEvent(new MouseEvent('mousemove', {
+        bubbles: true,
+        cancelable: true,
+        clientX: startX + distance,
+        clientY: startY,
+      }));
+
+      // Dispatch mouseup on document
+      document.dispatchEvent(new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+        clientX: startX + distance,
+        clientY: startY,
+      }));
+    }, dragDistance);
+
+    // Wait a tick for the component to update
+    await page.waitForTimeout(100);
+
+    // Step 4: Verify panel widths changed
+    const newFirstPanelBox = await firstPanel.boundingBox();
+    expect(newFirstPanelBox).not.toBeNull();
+
+    // The first panel should now be wider (we dragged right)
+    expect(newFirstPanelBox!.width).toBeGreaterThan(initialFirstPanelBox!.width);
+  });
+
+  test('can resize grid by dragging horizontal divider', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Start with 2x2 grid of iframes
+    await addIframe(page, 'https://example.com/1');
+    await addIframe(page, 'https://example.com/2');
+    await addIframe(page, 'https://example.com/3');
+    await addIframe(page, 'https://example.com/4');
+
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanels = iframeGrid.locator('iframe-panel');
+    await expect(iframePanels).toHaveCount(4);
+
+    // Get initial panel heights
+    const firstPanel = iframePanels.first();
+    const initialFirstPanelBox = await firstPanel.boundingBox();
+    expect(initialFirstPanelBox).not.toBeNull();
+
+    // Locate horizontal divider between rows
+    const horizontalDivider = iframeGrid.locator('grid-divider[orientation="horizontal"]').first();
+    await expect(horizontalDivider).toBeVisible();
+
+    // Get the divider's bounding box
+    const dividerBox = await horizontalDivider.boundingBox();
+    expect(dividerBox).not.toBeNull();
+
+    // Drag divider down by 50px
+    const startX = dividerBox!.x + dividerBox!.width / 2;
+    const startY = dividerBox!.y + dividerBox!.height / 2;
+    const dragDistance = 50;
+
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    // Move in small steps
+    for (let i = 1; i <= 10; i++) {
+      await page.mouse.move(startX, startY + (dragDistance * i) / 10);
+    }
+    await page.mouse.up();
+
+    // Verify panel heights changed - first row should be taller
+    const newFirstPanelBox = await firstPanel.boundingBox();
+    expect(newFirstPanelBox).not.toBeNull();
+    expect(newFirstPanelBox!.height).toBeGreaterThan(initialFirstPanelBox!.height);
+  });
+
+  test('grid ratios persist after page reload', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Step 1: Start with 2x2 grid of iframes
+    await addIframe(page, 'https://example.com/1');
+    await addIframe(page, 'https://example.com/2');
+    await addIframe(page, 'https://example.com/3');
+    await addIframe(page, 'https://example.com/4');
+
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanels = iframeGrid.locator('iframe-panel');
+    await expect(iframePanels).toHaveCount(4);
+
+    // Get initial panel widths
+    const firstPanel = iframePanels.first();
+    const initialFirstPanelBox = await firstPanel.boundingBox();
+    expect(initialFirstPanelBox).not.toBeNull();
+
+    // Step 2: Locate and drag vertical divider using dispatchEvent
+    const verticalDivider = iframeGrid.locator('grid-divider[orientation="vertical"]').first();
+    const dragDistance = 100;
+
+    await verticalDivider.evaluate((el, distance) => {
+      const hitArea = el.shadowRoot?.querySelector('.divider-hit-area');
+      if (!hitArea) throw new Error('Hit area not found');
+
+      const rect = hitArea.getBoundingClientRect();
+      const startX = rect.x + rect.width / 2;
+      const startY = rect.y + rect.height / 2;
+
+      // Dispatch mousedown on hit area
+      hitArea.dispatchEvent(new MouseEvent('mousedown', {
+        bubbles: true,
+        cancelable: true,
+        clientX: startX,
+        clientY: startY,
+      }));
+
+      // Dispatch mousemove on document
+      document.dispatchEvent(new MouseEvent('mousemove', {
+        bubbles: true,
+        cancelable: true,
+        clientX: startX + distance,
+        clientY: startY,
+      }));
+
+      // Dispatch mouseup on document
+      document.dispatchEvent(new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+        clientX: startX + distance,
+        clientY: startY,
+      }));
+    }, dragDistance);
+
+    await page.waitForTimeout(100);
+
+    // Get the new panel width after resize
+    const resizedFirstPanelBox = await firstPanel.boundingBox();
+    expect(resizedFirstPanelBox).not.toBeNull();
+    expect(resizedFirstPanelBox!.width).toBeGreaterThan(initialFirstPanelBox!.width);
+
+    // Step 5: Verify ratios persist after reload
+    await page.reload();
+
+    // Wait for the page to load and render
+    await expect(dashboardApp).toBeVisible();
+    const reloadedIframeGrid = dashboardApp.locator('iframe-grid');
+    const reloadedPanels = reloadedIframeGrid.locator('iframe-panel');
+    await expect(reloadedPanels).toHaveCount(4);
+
+    // Get the first panel's width after reload
+    const reloadedFirstPanel = reloadedPanels.first();
+    const reloadedFirstPanelBox = await reloadedFirstPanel.boundingBox();
+    expect(reloadedFirstPanelBox).not.toBeNull();
+
+    // The width after reload should match the resized width (within a small tolerance for rendering)
+    const tolerance = 5; // Allow 5px tolerance for minor rendering differences
+    expect(Math.abs(reloadedFirstPanelBox!.width - resizedFirstPanelBox!.width)).toBeLessThan(tolerance);
+  });
+});

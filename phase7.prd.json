@@ -13,7 +13,7 @@
         "Style toolbar with consistent dark palette",
         "Verify consistent dark appearance across all components"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "visual",

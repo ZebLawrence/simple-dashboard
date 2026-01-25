@@ -1,10 +1,14 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, unsafeCSS } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import type { IframeConfig, GridConfig, WorkspaceState } from '../types/index.js';
 import { storageService } from '../services/storage-service.js';
+import { applyGlobalTheme, themeColors } from '../styles/theme.js';
 import './iframe-grid.js';
 import './add-iframe-button.js';
 import './add-iframe-modal.js';
+
+// Apply global theme styles to document
+applyGlobalTheme();
 
 @customElement('dashboard-app')
 export class DashboardApp extends LitElement {
@@ -29,8 +33,8 @@ export class DashboardApp extends LitElement {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      background-color: #1a1a2e;
-      color: #eaeaea;
+      background-color: var(--color-background, ${unsafeCSS(themeColors.background)});
+      color: var(--color-text-primary, ${unsafeCSS(themeColors.textPrimary)});
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
@@ -43,15 +47,15 @@ export class DashboardApp extends LitElement {
 
     .dashboard-header {
       padding: 8px 16px;
-      background-color: #16213e;
-      border-bottom: 1px solid #0f3460;
+      background-color: var(--color-surface, ${unsafeCSS(themeColors.surface)});
+      border-bottom: 1px solid var(--color-border, ${unsafeCSS(themeColors.border)});
     }
 
     .dashboard-header h1 {
       margin: 0;
       font-size: 1.25rem;
       font-weight: 500;
-      color: #e94560;
+      color: var(--color-accent, ${unsafeCSS(themeColors.accent)});
     }
 
     .dashboard-content {

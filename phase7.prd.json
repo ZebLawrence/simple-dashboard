@@ -91,7 +91,7 @@
         "Click Add button",
         "Verify new iframe visible in grid"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "testing",

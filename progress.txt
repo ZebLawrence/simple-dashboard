@@ -114,3 +114,36 @@ Enhanced grid dividers for better usability and visual consistency:
 
 Tests: 288 passed, 0 failed
 Typecheck: Pass
+
+## Phase 7: Write Playwright e2e test for adding iframe - COMPLETE
+
+Created comprehensive e2e tests in e2e/app.spec.ts for the add iframe workflow:
+
+1. **Test: can add an iframe through the modal** (lines 30-68)
+   - Navigate to application URL
+   - Click floating add button (add-iframe-button)
+   - Verify modal appears with 'open' attribute
+   - Enter URL in input field (https://example.com)
+   - Click Add button
+   - Verify new iframe-panel visible in grid with correct URL attribute
+   - Verify iframe element has correct src
+
+2. **Test: modal closes after adding iframe** (lines 70-88)
+   - Opens modal, adds iframe, verifies modal closes automatically
+
+3. **Test: modal can be cancelled** (lines 90-111)
+   - Opens modal, clicks cancel, verifies modal closes
+   - Verifies no iframe was added to grid
+
+4. **Test: shows error for invalid URL** (lines 113-138)
+   - Opens modal, enters invalid URL
+   - Clicks Add button
+   - Verifies error message appears (.error-message.visible)
+   - Verifies modal stays open
+   - Verifies input has error class
+
+All tests use beforeEach to clear localStorage for clean state.
+
+E2E Tests: 7 passed, 0 failed
+Unit Tests: 288 passed, 0 failed
+Typecheck: Pass

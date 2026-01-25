@@ -115,7 +115,24 @@ describe('AddIframeModal', () => {
 
     const header = el.shadowRoot!.querySelector('.modal-header');
     expect(header).to.exist;
-    expect(header!.textContent).to.equal('Add Iframe');
+    expect(header!.textContent).to.equal('Manage Iframes');
+  });
+
+  it('renders tabs for Add URL and Import/Export', async () => {
+    const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+    const tabs = el.shadowRoot!.querySelectorAll('.tab');
+    expect(tabs.length).to.equal(2);
+    expect(tabs[0].textContent!.trim()).to.equal('Add URL');
+    expect(tabs[1].textContent!.trim()).to.equal('Import / Export');
+  });
+
+  it('shows Add URL tab by default', async () => {
+    const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+    const activeTab = el.shadowRoot!.querySelector('.tab.active');
+    expect(activeTab).to.exist;
+    expect(activeTab!.textContent!.trim()).to.equal('Add URL');
   });
 
   it('input has placeholder text', async () => {
@@ -479,6 +496,162 @@ describe('AddIframeModal', () => {
 
       expect(eventDetail).to.not.be.null;
       expect(eventDetail!.url).to.equal('https://example.com');
+    });
+  });
+
+  describe('import/export functionality', () => {
+    it('switches to import/export tab when clicked', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const importExportTab = el.shadowRoot!.querySelectorAll('.tab')[1] as HTMLButtonElement;
+      importExportTab.click();
+      await el.updateComplete;
+
+      expect(importExportTab.classList.contains('active')).to.be.true;
+
+      // Should show export and import sections
+      const sectionLabels = el.shadowRoot!.querySelectorAll('.section-label');
+      expect(sectionLabels.length).to.equal(2);
+      expect(sectionLabels[0].textContent).to.contain('Export');
+      expect(sectionLabels[1].textContent).to.contain('Import');
+    });
+
+    it('displays current URLs in export textarea', async () => {
+      const urls = ['https://example.com', 'https://example.org'];
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open .currentUrls=${urls}></add-iframe-modal>`);
+
+      const importExportTab = el.shadowRoot!.querySelectorAll('.tab')[1] as HTMLButtonElement;
+      importExportTab.click();
+      await el.updateComplete;
+
+      const exportTextarea = el.shadowRoot!.querySelector('textarea[readonly]') as HTMLTextAreaElement;
+      expect(exportTextarea.value).to.equal('https://example.com\nhttps://example.org');
+    });
+
+    it('shows placeholder when no URLs to export', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open .currentUrls=${[]}></add-iframe-modal>`);
+
+      const importExportTab = el.shadowRoot!.querySelectorAll('.tab')[1] as HTMLButtonElement;
+      importExportTab.click();
+      await el.updateComplete;
+
+      const exportTextarea = el.shadowRoot!.querySelector('textarea[readonly]') as HTMLTextAreaElement;
+      expect(exportTextarea.value).to.equal('');
+      expect(exportTextarea.placeholder).to.equal('No iframes to export');
+    });
+
+    it('dispatches import-urls event with valid URLs', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const importExportTab = el.shadowRoot!.querySelectorAll('.tab')[1] as HTMLButtonElement;
+      importExportTab.click();
+      await el.updateComplete;
+
+      const importTextarea = el.shadowRoot!.querySelector('#import-textarea') as HTMLTextAreaElement;
+      importTextarea.value = 'https://example.com\nhttps://example.org';
+
+      let eventDetail: { urls: string[] } | null = null;
+      el.addEventListener('import-urls', ((e: CustomEvent) => {
+        eventDetail = e.detail;
+      }) as EventListener);
+
+      const importButton = el.shadowRoot!.querySelector('.import-button') as HTMLButtonElement;
+      importButton.click();
+
+      expect(eventDetail).to.not.be.null;
+      expect(eventDetail!.urls).to.deep.equal(['https://example.com', 'https://example.org']);
+    });
+
+    it('filters out invalid URLs during import', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const importExportTab = el.shadowRoot!.querySelectorAll('.tab')[1] as HTMLButtonElement;
+      importExportTab.click();
+      await el.updateComplete;
+
+      const importTextarea = el.shadowRoot!.querySelector('#import-textarea') as HTMLTextAreaElement;
+      importTextarea.value = 'https://valid.com\ninvalid-url\nhttps://also-valid.com';
+
+      let eventDetail: { urls: string[] } | null = null;
+      el.addEventListener('import-urls', ((e: CustomEvent) => {
+        eventDetail = e.detail;
+      }) as EventListener);
+
+      const importButton = el.shadowRoot!.querySelector('.import-button') as HTMLButtonElement;
+      importButton.click();
+
+      expect(eventDetail).to.not.be.null;
+      expect(eventDetail!.urls).to.deep.equal(['https://valid.com', 'https://also-valid.com']);
+    });
+
+    it('shows error when all URLs are invalid', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const importExportTab = el.shadowRoot!.querySelectorAll('.tab')[1] as HTMLButtonElement;
+      importExportTab.click();
+      await el.updateComplete;
+
+      const importTextarea = el.shadowRoot!.querySelector('#import-textarea') as HTMLTextAreaElement;
+      importTextarea.value = 'invalid-url\nalso-invalid';
+
+      const importButton = el.shadowRoot!.querySelector('.import-button') as HTMLButtonElement;
+      importButton.click();
+      await el.updateComplete;
+
+      const errorMessage = el.shadowRoot!.querySelectorAll('.error-message')[1] as HTMLElement;
+      expect(errorMessage.classList.contains('visible')).to.be.true;
+      expect(el.open).to.be.true; // Should stay open
+    });
+
+    it('shows error when import textarea is empty', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const importExportTab = el.shadowRoot!.querySelectorAll('.tab')[1] as HTMLButtonElement;
+      importExportTab.click();
+      await el.updateComplete;
+
+      const importButton = el.shadowRoot!.querySelector('.import-button') as HTMLButtonElement;
+      importButton.click();
+      await el.updateComplete;
+
+      const importTextarea = el.shadowRoot!.querySelector('#import-textarea') as HTMLTextAreaElement;
+      expect(importTextarea.classList.contains('error')).to.be.true;
+    });
+
+    it('closes modal after successful import', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const importExportTab = el.shadowRoot!.querySelectorAll('.tab')[1] as HTMLButtonElement;
+      importExportTab.click();
+      await el.updateComplete;
+
+      const importTextarea = el.shadowRoot!.querySelector('#import-textarea') as HTMLTextAreaElement;
+      importTextarea.value = 'https://example.com';
+
+      const importButton = el.shadowRoot!.querySelector('.import-button') as HTMLButtonElement;
+      importButton.click();
+      await el.updateComplete;
+
+      expect(el.open).to.be.false;
+    });
+
+    it('resets to Add URL tab when modal reopens', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      // Switch to import/export tab
+      const importExportTab = el.shadowRoot!.querySelectorAll('.tab')[1] as HTMLButtonElement;
+      importExportTab.click();
+      await el.updateComplete;
+
+      // Close and reopen
+      el.open = false;
+      await el.updateComplete;
+      el.open = true;
+      await el.updateComplete;
+
+      // Should be back on Add URL tab
+      const activeTab = el.shadowRoot!.querySelector('.tab.active');
+      expect(activeTab!.textContent!.trim()).to.equal('Add URL');
     });
   });
 });

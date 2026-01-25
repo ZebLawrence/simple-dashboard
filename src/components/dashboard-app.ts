@@ -64,7 +64,13 @@ export class DashboardApp extends LitElement {
           ></iframe-grid>
         </main>
         <add-iframe-button @add-iframe-click=${this._handleAddIframeClick}></add-iframe-button>
-        <add-iframe-modal .open=${this.modalOpen} @modal-close=${this._handleModalClose} @add-iframe=${this._handleAddIframe}></add-iframe-modal>
+        <add-iframe-modal
+          .open=${this.modalOpen}
+          .currentUrls=${this.iframes.map(iframe => iframe.url)}
+          @modal-close=${this._handleModalClose}
+          @add-iframe=${this._handleAddIframe}
+          @import-urls=${this._handleImportUrls}
+        ></add-iframe-modal>
       </div>
     `;
   }
@@ -100,6 +106,43 @@ export class DashboardApp extends LitElement {
     this.modalOpen = false;
 
     // Auto-save after adding iframe
+    this.saveState();
+  }
+
+  private _handleImportUrls(event: CustomEvent<{ urls: string[] }>) {
+    const { urls } = event.detail;
+
+    // Clear existing iframes and start fresh with imported URLs
+    const newIframes: IframeConfig[] = [];
+
+    // Calculate grid dimensions for the number of URLs
+    const count = urls.length;
+    const { newColumns, newRows } = this._calculateOptimalGridDimensions(count);
+
+    // Create iframe configs with positions
+    urls.forEach((url, index) => {
+      const id = `iframe-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`;
+      const position = {
+        row: Math.floor(index / newColumns),
+        col: index % newColumns,
+      };
+
+      newIframes.push({ id, url, position });
+    });
+
+    // Update state with new iframes and grid
+    this.iframes = newIframes;
+    this.grid = {
+      columns: newColumns,
+      rows: newRows,
+      columnRatios: Array(newColumns).fill(1),
+      rowRatios: Array(newRows).fill(1),
+    };
+
+    // Close modal
+    this.modalOpen = false;
+
+    // Auto-save after importing
     this.saveState();
   }
 

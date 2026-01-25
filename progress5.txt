@@ -1,0 +1,202 @@
+
+### Phase 5 Task 1: Implement hover detection on iframe-panel - COMPLETE
+
+Implemented proper hover detection with JavaScript state management instead of pure CSS hover:
+
+Updated `src/components/iframe-panel.ts`:
+- Added `_isHovered` state property to track hover state
+- Added `_handleMouseEnter()` method to set hover state to true
+- Added `_handleMouseLeave()` method to set hover state to false
+- Added `isHovered` getter for external access to hover state
+- Added mouseenter/mouseleave event listeners to iframe-container
+- Added `.hover-overlay` div for pointer event handling over iframe
+- Changed toolbar visibility from CSS `:hover` to `.visible` class based on state
+- When hovered, overlay captures pointer events so mouseleave fires correctly
+- Toolbar now uses `pointer-events: none` by default, `auto` when visible
+
+Added 8 tests to `src/components/iframe-panel.test.ts`:
+- Test for isHovered is false by default
+- Test for setting isHovered to true on mouseenter
+- Test for setting isHovered to false on mouseleave
+- Test for adding hovered class to container on mouseenter
+- Test for removing hovered class from container on mouseleave
+- Test for rendering hover overlay for pointer event handling
+- Test for toolbar becomes visible when hovered
+- Test for toolbar hides when hover ends
+
+All 167 tests passing.
+
+### Phase 5 Task 2: Create toolbar overlay UI - COMPLETE
+
+Updated toolbar styling in `src/components/iframe-panel.ts`:
+- Added semi-transparent dark background (rgba(15, 52, 96, 0.85))
+- Toolbar now spans full width at top of panel (left: 0, right: 0)
+- Increased padding to 8px for better visual appearance
+- Added justify-content: flex-end to keep close button on right side
+- Smooth fade-in transition was already in place (opacity 0.2s ease)
+
+Added 2 tests to `src/components/iframe-panel.test.ts`:
+- Test for toolbar having semi-transparent dark background
+- Test for toolbar spanning full width at top of panel (position absolute, top/left/right: 0)
+
+All 169 tests passing.
+
+### Phase 5 Task 3: Add toolbar action icons - COMPLETE
+
+Updated `src/components/iframe-panel.ts`:
+- Added `.toolbar-button` base class for consistent button styling across all toolbar icons
+- Added edit button (✎) with class `.edit-button` and title "Edit URL"
+- Added refresh button (↻) with class `.refresh-button` and title "Refresh"
+- Added fullscreen button (⛶) with class `.fullscreen-button` and title "Fullscreen"
+- Close button now uses shared `.toolbar-button` class with `.close-button` modifier
+- All buttons have consistent 24x24px size with 4px border radius
+- Base buttons use semi-transparent white background (rgba(255,255,255,0.15))
+- Close button retains its red background (rgba(233,69,96,0.9))
+- Added smooth hover transition (0.15s ease) on all buttons
+- Hover brightens buttons (rgba(255,255,255,0.3) for base, solid red for close)
+- Buttons ordered: edit, refresh, fullscreen, close (from left to right)
+
+Added 12 tests to `src/components/iframe-panel.test.ts`:
+- Test for edit button existence
+- Test for edit button pencil icon (✎)
+- Test for edit button title
+- Test for refresh button existence
+- Test for refresh button circular arrow icon (↻)
+- Test for refresh button title
+- Test for fullscreen button existence
+- Test for fullscreen button expand icon (⛶)
+- Test for fullscreen button title
+- Test for all 4 buttons having toolbar-button class
+- Test for correct button order in toolbar
+- Test for close button still having × symbol
+
+All 181 tests passing.
+
+### Phase 5 Task 4: Implement Edit URL functionality - COMPLETE
+
+Updated `src/components/iframe-panel.ts`:
+- Added `_isEditingUrl` state property to track edit mode
+- Added `_editUrlValue` state property to hold the input value during editing
+- Added `isEditingUrl` getter for external access to edit state
+- Added `_handleEditClick()` method to open the URL edit overlay
+- Added `_handleEditInputKeydown()` method to handle Enter (submit) and Escape (cancel)
+- Added `_handleEditInputChange()` method to update input value on change
+- Added `_handleOverlayClick()` method to cancel edit when clicking outside container
+- Added `_submitUrlEdit()` method to update URL and dispatch `url-changed` event
+- Added `_cancelUrlEdit()` method to close overlay without changing URL
+- Added CSS for `.url-edit-overlay`, `.url-edit-container`, `.url-edit-label`, and `.url-edit-input`
+- Input automatically focuses and selects all text when overlay opens
+- Overlay uses semi-transparent dark background (rgba(0,0,0,0.7))
+- Input styled to match dashboard theme with focus state
+
+Added 12 tests to `src/components/iframe-panel.test.ts`:
+- Test for isEditingUrl is false by default
+- Test for clicking edit button shows URL edit overlay
+- Test for setting isEditingUrl to true when edit button is clicked
+- Test for URL input being pre-filled with current URL
+- Test for pressing Enter submitting the new URL
+- Test for pressing Escape canceling the edit
+- Test for clicking outside the edit container canceling the edit
+- Test for clicking inside the edit container not canceling the edit
+- Test for iframe src updating when URL is submitted
+- Test for dispatching url-changed event when URL is submitted
+- Test for url-changed event bubbles and is composed
+- Test for overlay not being rendered when not editing
+
+All 193 tests passing.
+
+### Phase 5 Task 5: Implement Refresh functionality - COMPLETE
+
+Updated `src/components/iframe-panel.ts`:
+- Added `_isRefreshing` state property to track refresh state
+- Added `isRefreshing` getter for external access to refresh state
+- Added `_handleRefreshClick()` method to initiate refresh
+  - Sets `_isRefreshing` to true
+  - Updates iframe src with cache-busting `_refresh` query parameter using `Date.now()`
+- Added `_handleIframeLoad()` method to handle iframe load complete event
+  - Sets `_isRefreshing` to false when iframe finishes loading
+- Added CSS for loading indicator:
+  - `.loading-indicator` - centered overlay with semi-transparent dark background
+  - `.loading-spinner` - animated spinning circle with accent color
+  - `.loading-text` - displays "Refreshing..." text
+  - `@keyframes spin` - animation for spinner rotation
+- Loading indicator appears centered over iframe during refresh
+- Added `@load` event listener to iframe element
+
+Added 10 tests to `src/components/iframe-panel.test.ts`:
+- Test for isRefreshing is false by default
+- Test for clicking refresh button sets isRefreshing to true
+- Test for clicking refresh button updates iframe src
+- Test for showing loading indicator when refreshing
+- Test for loading indicator contains spinner
+- Test for loading indicator contains "Refreshing..." text
+- Test for loading indicator is hidden when not refreshing
+- Test for isRefreshing is set to false when iframe loads
+- Test for loading indicator hides after iframe loads
+- Test for iframe has load event listener
+
+All 203 tests passing.
+
+### Phase 5 Task 6: Implement Fullscreen mode - COMPLETE
+
+Updated `src/components/iframe-panel.ts`:
+- Added `_isFullscreen` state property to track fullscreen state
+- Added `isFullscreen` getter for external access to fullscreen state
+- Added `_handleFullscreenClick()` method to enter fullscreen mode
+  - Sets `_isFullscreen` to true
+  - Adds document-level keydown listener for Escape key
+- Added `_handleExitFullscreen()` method to exit fullscreen mode
+  - Sets `_isFullscreen` to false
+  - Removes document-level keydown listener
+- Added `_handleFullscreenKeydown` arrow function to handle Escape key
+- Added CSS for fullscreen overlay:
+  - `.fullscreen-overlay` - fixed position covering entire viewport with z-index 1000
+  - `.fullscreen-toolbar` - positioned at top with exit button
+  - `.fullscreen-iframe` - fills remaining space
+  - `.exit-fullscreen-button` - styled 32x32px button with × symbol
+  - `@keyframes fullscreen-enter` - smooth scale/fade animation on entry
+- Fullscreen overlay renders a separate iframe with same URL
+- Exit button and Escape key both close fullscreen mode
+
+Added 14 tests to `src/components/iframe-panel.test.ts`:
+- Test for isFullscreen is false by default
+- Test for clicking fullscreen button sets isFullscreen to true
+- Test for showing fullscreen overlay when fullscreen is active
+- Test for fullscreen overlay having fixed positioning to cover viewport
+- Test for fullscreen overlay containing exit button
+- Test for exit fullscreen button having × symbol
+- Test for clicking exit button closes fullscreen
+- Test for fullscreen overlay is hidden after exit
+- Test for pressing Escape exits fullscreen
+- Test for fullscreen overlay containing an iframe
+- Test for fullscreen iframe having same URL as panel
+- Test for fullscreen overlay not being rendered when not fullscreen
+- Test for fullscreen overlay having high z-index
+- Test for fullscreen toolbar being visible in fullscreen mode
+
+All 217 tests passing.
+
+### Phase 5 Task 7: Handle toolbar interactions with iframe - COMPLETE
+
+Updated `src/components/iframe-panel.ts`:
+- Added `e.stopPropagation()` to `_handleClose()` method to prevent click events from reaching iframe
+- Added `e.stopPropagation()` to `_handleEditClick()` method to prevent click events from reaching iframe
+- Added `e.stopPropagation()` to `_handleRefreshClick()` method to prevent click events from reaching iframe
+- Added `e.stopPropagation()` to `_handleFullscreenClick()` method to prevent click events from reaching iframe
+- Added `e?.stopPropagation()` to `_handleExitFullscreen()` method (optional param since it can be called from keyboard handler)
+- Toolbar already had correct pointer-events styling (none by default, auto when visible)
+- Toolbar z-index (10) is already higher than hover-overlay z-index (5)
+
+Added 10 tests to `src/components/iframe-panel.test.ts`:
+- Test for toolbar having pointer-events none by default
+- Test for toolbar having pointer-events auto when visible
+- Test for close button click stopping event propagation
+- Test for edit button click stopping event propagation
+- Test for refresh button click stopping event propagation
+- Test for fullscreen button click stopping event propagation
+- Test for toolbar buttons remaining interactive when toolbar is visible
+- Test for toolbar z-index being higher than hover overlay
+- Test for all toolbar actions working reliably in sequence
+- Test for exit fullscreen button click stopping event propagation
+
+All 227 tests passing.

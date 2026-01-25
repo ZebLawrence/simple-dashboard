@@ -128,7 +128,7 @@
         "Verify grid ratios restored",
         "Verify URLs match original"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "testing",

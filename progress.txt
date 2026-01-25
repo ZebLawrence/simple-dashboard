@@ -205,3 +205,38 @@ Implementation notes:
 E2E Tests: 13 passed, 0 failed
 Unit Tests: 288 passed, 0 failed
 Typecheck: Pass
+
+## Phase 7: Write Playwright e2e test for persistence - COMPLETE
+
+Created comprehensive e2e tests in e2e/app.spec.ts for persistence workflow:
+
+1. **Test: all iframes restored after page reload** (lines 510-548)
+   - Add multiple iframes with distinct URLs (3 URLs)
+   - Reload the page
+   - Verify all iframes are restored with correct URLs
+
+2. **Test: grid ratios restored after page reload** (lines 551-627)
+   - Start with 2x2 grid of iframes
+   - Resize grid layout by dragging vertical divider
+   - Reload the page
+   - Verify panel widths match resized widths (within 5px tolerance)
+
+3. **Test: complete state persists across multiple reloads** (lines 629-667)
+   - Add 2 iframes with distinct URLs
+   - Reload page twice
+   - Verify URLs are preserved after each reload
+
+4. **Test: empty state persists correctly** (lines 670-695)
+   - Add an iframe then remove it
+   - Reload the page
+   - Verify empty state is preserved (no iframes restored)
+
+Implementation notes:
+- Tests run serially to avoid localStorage race conditions between parallel tests
+- Verification by URL attribute rather than panel count since grid may contain empty cells
+- Empty state verified via `.empty-state` CSS class visibility
+- Uses dispatchEvent for divider drag operations due to shadow DOM positioning
+
+E2E Tests: 17 passed, 0 failed
+Unit Tests: 288 passed, 0 failed
+Typecheck: Pass

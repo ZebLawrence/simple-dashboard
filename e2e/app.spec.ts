@@ -477,3 +477,216 @@ test.describe('Grid Resizing', () => {
     expect(Math.abs(reloadedFirstPanelBox!.width - resizedFirstPanelBox!.width)).toBeLessThan(tolerance);
   });
 });
+
+test.describe('Persistence', () => {
+  // Run persistence tests serially to avoid localStorage race conditions
+  test.describe.configure({ mode: 'serial' });
+  // Helper function to add an iframe
+  async function addIframe(page: import('@playwright/test').Page, url: string) {
+    const dashboardApp = page.locator('dashboard-app');
+    const addButton = dashboardApp.locator('add-iframe-button');
+    await addButton.locator('button').click();
+
+    const modal = dashboardApp.locator('add-iframe-modal');
+    await expect(modal).toHaveAttribute('open', '');
+    await modal.locator('#url-input').fill(url);
+    await modal.locator('.add-button').click();
+    await expect(modal).not.toHaveAttribute('open', '');
+  }
+
+  test.beforeEach(async ({ page }) => {
+    // Clear localStorage before each test to start with clean state
+    await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    // Wait for the app to fully render with empty state
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+    // Verify we're starting with an empty grid
+    const iframePanels = dashboardApp.locator('iframe-grid').locator('iframe-panel');
+    await expect(iframePanels).toHaveCount(0);
+  });
+
+  test('all iframes restored after page reload', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Ensure we start with zero iframes in this specific test
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const emptyState = iframeGrid.locator('.empty-state');
+    await expect(emptyState).toBeVisible();
+
+    // Step 1: Add multiple iframes with distinct URLs
+    const urls = [
+      'https://example.com/page1',
+      'https://example.org/page2',
+      'https://example.net/page3',
+    ];
+
+    for (const url of urls) {
+      await addIframe(page, url);
+    }
+
+    // Verify all iframes were added by checking panels with actual URLs
+    // Note: Grid may have empty cells (iframe-panel without url), so we filter by url attribute
+    for (const url of urls) {
+      const panel = iframeGrid.locator(`iframe-panel[url="${url}"]`);
+      await expect(panel).toBeVisible();
+    }
+
+    // Step 3: Reload the page
+    await page.reload();
+
+    // Step 4: Verify all iframes restored
+    await expect(dashboardApp).toBeVisible();
+    const restoredGrid = dashboardApp.locator('iframe-grid');
+
+    // Step 5 & 6: Verify URLs match original - each URL should still be present
+    for (const url of urls) {
+      const panel = restoredGrid.locator(`iframe-panel[url="${url}"]`);
+      await expect(panel).toBeVisible();
+    }
+  });
+
+  test('grid ratios restored after page reload', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Add 4 iframes to create a 2x2 grid
+    await addIframe(page, 'https://example.com/1');
+    await addIframe(page, 'https://example.com/2');
+    await addIframe(page, 'https://example.com/3');
+    await addIframe(page, 'https://example.com/4');
+
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanels = iframeGrid.locator('iframe-panel');
+    await expect(iframePanels).toHaveCount(4);
+
+    // Get initial panel dimensions
+    const firstPanel = iframePanels.first();
+    const initialBox = await firstPanel.boundingBox();
+    expect(initialBox).not.toBeNull();
+
+    // Step 2: Resize grid layout - drag vertical divider
+    const verticalDivider = iframeGrid.locator('grid-divider[orientation="vertical"]').first();
+    const dragDistance = 80;
+
+    await verticalDivider.evaluate((el, distance) => {
+      const hitArea = el.shadowRoot?.querySelector('.divider-hit-area');
+      if (!hitArea) throw new Error('Hit area not found');
+
+      const rect = hitArea.getBoundingClientRect();
+      const startX = rect.x + rect.width / 2;
+      const startY = rect.y + rect.height / 2;
+
+      hitArea.dispatchEvent(new MouseEvent('mousedown', {
+        bubbles: true,
+        cancelable: true,
+        clientX: startX,
+        clientY: startY,
+      }));
+
+      document.dispatchEvent(new MouseEvent('mousemove', {
+        bubbles: true,
+        cancelable: true,
+        clientX: startX + distance,
+        clientY: startY,
+      }));
+
+      document.dispatchEvent(new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+        clientX: startX + distance,
+        clientY: startY,
+      }));
+    }, dragDistance);
+
+    await page.waitForTimeout(100);
+
+    // Capture the resized dimensions
+    const resizedBox = await firstPanel.boundingBox();
+    expect(resizedBox).not.toBeNull();
+    expect(resizedBox!.width).toBeGreaterThan(initialBox!.width);
+
+    // Step 3: Reload the page
+    await page.reload();
+
+    // Wait for restored state
+    await expect(dashboardApp).toBeVisible();
+    const restoredPanels = dashboardApp.locator('iframe-grid').locator('iframe-panel');
+    await expect(restoredPanels).toHaveCount(4);
+
+    // Step 5: Verify grid ratios restored
+    const restoredFirstPanel = restoredPanels.first();
+    const restoredBox = await restoredFirstPanel.boundingBox();
+    expect(restoredBox).not.toBeNull();
+
+    // Width should match resized width within tolerance
+    const tolerance = 5;
+    expect(Math.abs(restoredBox!.width - resizedBox!.width)).toBeLessThan(tolerance);
+  });
+
+  test('complete state persists across multiple reloads', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Add iframes with distinct URLs
+    const urls = [
+      'https://example.com/alpha',
+      'https://example.org/beta',
+    ];
+
+    for (const url of urls) {
+      await addIframe(page, url);
+    }
+
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanels = iframeGrid.locator('iframe-panel');
+    await expect(iframePanels).toHaveCount(2);
+
+    // First reload
+    await page.reload();
+    await expect(dashboardApp).toBeVisible();
+    let restoredPanels = dashboardApp.locator('iframe-grid').locator('iframe-panel');
+    await expect(restoredPanels).toHaveCount(2);
+
+    // Verify URLs after first reload
+    for (let i = 0; i < urls.length; i++) {
+      await expect(restoredPanels.nth(i)).toHaveAttribute('url', urls[i]);
+    }
+
+    // Second reload
+    await page.reload();
+    await expect(dashboardApp).toBeVisible();
+    restoredPanels = dashboardApp.locator('iframe-grid').locator('iframe-panel');
+    await expect(restoredPanels).toHaveCount(2);
+
+    // Verify URLs after second reload
+    for (let i = 0; i < urls.length; i++) {
+      await expect(restoredPanels.nth(i)).toHaveAttribute('url', urls[i]);
+    }
+  });
+
+  test('empty state persists correctly', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Add an iframe then remove it
+    await addIframe(page, 'https://example.com');
+
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanel = iframeGrid.locator('iframe-panel');
+    await expect(iframePanel).toHaveCount(1);
+
+    // Remove the iframe
+    await iframePanel.hover();
+    await iframePanel.locator('.close-button').click();
+    await expect(iframePanel).toHaveCount(0);
+
+    // Reload and verify empty state persists
+    await page.reload();
+    await expect(dashboardApp).toBeVisible();
+    const restoredPanels = dashboardApp.locator('iframe-grid').locator('iframe-panel');
+    await expect(restoredPanels).toHaveCount(0);
+  });
+});

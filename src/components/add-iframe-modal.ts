@@ -1,7 +1,9 @@
 import { LitElement, html, css, type PropertyValues } from 'lit';
 import { customElement, property, state, query } from 'lit/decorators.js';
+import type { SavedPreset } from '../types/index.js';
+import { storageService } from '../services/storage-service.js';
 
-type ModalTab = 'add' | 'import-export';
+type ModalTab = 'add' | 'import-export' | 'presets';
 
 @customElement('add-iframe-modal')
 export class AddIframeModal extends LitElement {
@@ -22,6 +24,18 @@ export class AddIframeModal extends LitElement {
 
   @state()
   private copySuccess = false;
+
+  @state()
+  private savedPresets: SavedPreset[] = [];
+
+  @state()
+  private presetNameInput = '';
+
+  @state()
+  private presetSaveError = '';
+
+  @state()
+  private presetSaveSuccess = false;
 
   @query('#url-input')
   private urlInput!: HTMLInputElement;
@@ -53,6 +67,12 @@ export class AddIframeModal extends LitElement {
     this.hasError = false;
     this.importError = '';
     this.copySuccess = false;
+    this.presetNameInput = '';
+    this.presetSaveError = '';
+    this.presetSaveSuccess = false;
+
+    // Load saved presets
+    this.savedPresets = storageService.getPresets();
 
     // Focus the URL input after the modal is rendered
     setTimeout(() => {
@@ -332,6 +352,113 @@ export class AddIframeModal extends LitElement {
       font-size: 12px;
       margin-top: 4px;
     }
+
+    .preset-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+    }
+
+    .preset-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background-color: #2a2826;
+      border: 1px solid #3d3937;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .preset-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .preset-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .preset-name {
+      color: #eae8e6;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .preset-meta {
+      color: #7a7572;
+      font-size: 12px;
+    }
+
+    .preset-actions {
+      display: flex;
+      gap: 8px;
+      margin-left: 12px;
+    }
+
+    .preset-actions button {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .load-button {
+      background-color: #e07850;
+      border: none;
+      color: #eae8e6;
+    }
+
+    .load-button:hover {
+      background-color: #f08a62;
+    }
+
+    .delete-button {
+      background-color: transparent;
+      border: 1px solid #3d3937;
+      color: #a8a29e;
+    }
+
+    .delete-button:hover {
+      background-color: #3d3937;
+      color: #eae8e6;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px;
+      color: #7a7572;
+      font-size: 14px;
+    }
+
+    .save-preset-form {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .save-preset-form .form-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .save-button {
+      background-color: #e07850;
+      border: none;
+      color: #eae8e6;
+    }
+
+    .save-button:hover {
+      background-color: #f08a62;
+    }
+
+    .save-button:disabled {
+      background-color: #3d3937;
+      color: #7a7572;
+      cursor: not-allowed;
+    }
   `;
 
   override render() {
@@ -342,21 +469,34 @@ export class AddIframeModal extends LitElement {
 
           <div class="tabs">
             <button
+              type="button"
               class="tab ${this.activeTab === 'add' ? 'active' : ''}"
               @click=${() => this._setTab('add')}
             >
               Add URL
             </button>
             <button
+              type="button"
               class="tab ${this.activeTab === 'import-export' ? 'active' : ''}"
               @click=${() => this._setTab('import-export')}
             >
               Import / Export
             </button>
+            <button
+              type="button"
+              class="tab ${this.activeTab === 'presets' ? 'active' : ''}"
+              @click=${() => this._setTab('presets')}
+            >
+              Saved Presets
+            </button>
           </div>
 
           <div class="tab-content">
-            ${this.activeTab === 'add' ? this._renderAddTab() : this._renderImportExportTab()}
+            ${this.activeTab === 'add'
+              ? this._renderAddTab()
+              : this.activeTab === 'import-export'
+                ? this._renderImportExportTab()
+                : this._renderPresetsTab()}
           </div>
         </div>
       </div>
@@ -455,6 +595,163 @@ export class AddIframeModal extends LitElement {
         </button>
       </div>
     `;
+  }
+
+  private _renderPresetsTab() {
+    return html`
+      <div class="section-label">Save Current URLs as Preset</div>
+      <div class="save-preset-form">
+        <div class="form-group">
+          <input
+            type="text"
+            class="${this.presetSaveError ? 'error' : ''}"
+            placeholder="Enter preset name"
+            .value=${this.presetNameInput}
+            @input=${this._handlePresetNameInput}
+            @keydown=${this._handlePresetNameKeydown}
+          />
+          <div class="error-message ${this.presetSaveError ? 'visible' : ''}">
+            ${this.presetSaveError}
+          </div>
+          ${this.presetSaveSuccess ? html`<div class="success-message">Preset saved!</div>` : ''}
+        </div>
+        <button
+          type="button"
+          class="save-button"
+          @click=${this._handleSavePreset}
+          ?disabled=${this.currentUrls.length === 0}
+        >
+          Save
+        </button>
+      </div>
+      <div class="help-text" style="margin-bottom: 16px;">
+        ${this.currentUrls.length === 0
+          ? 'Add some iframes first to save as a preset'
+          : `This will save ${this.currentUrls.length} URL${this.currentUrls.length === 1 ? '' : 's'}`}
+      </div>
+
+      <hr class="section-divider" />
+
+      <div class="section-label">Your Saved Presets</div>
+      ${this.savedPresets.length === 0
+        ? html`<div class="empty-state">No saved presets yet</div>`
+        : html`
+            <div class="preset-list">
+              ${this.savedPresets.map(preset => html`
+                <div class="preset-item">
+                  <div class="preset-info">
+                    <div class="preset-name">${preset.name}</div>
+                    <div class="preset-meta">
+                      ${preset.urls.length} URL${preset.urls.length === 1 ? '' : 's'} ·
+                      ${this._formatDate(preset.createdAt)}
+                    </div>
+                  </div>
+                  <div class="preset-actions">
+                    <button
+                      type="button"
+                      class="load-button"
+                      @click=${() => this._handleLoadPreset(preset.id)}
+                    >
+                      Load
+                    </button>
+                    <button
+                      type="button"
+                      class="delete-button"
+                      @click=${() => this._handleDeletePreset(preset.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              `)}
+            </div>
+          `}
+
+      <div class="button-group" style="margin-top: 20px;">
+        <button
+          type="button"
+          class="cancel-button"
+          @click=${this._handleCancel}
+        >
+          Close
+        </button>
+      </div>
+    `;
+  }
+
+  private _formatDate(timestamp: number): string {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  }
+
+  private _handlePresetNameInput(e: Event) {
+    const input = e.target as HTMLInputElement;
+    this.presetNameInput = input.value;
+    if (this.presetSaveError) {
+      this.presetSaveError = '';
+    }
+    if (this.presetSaveSuccess) {
+      this.presetSaveSuccess = false;
+    }
+  }
+
+  private _handlePresetNameKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      this._handleSavePreset();
+    }
+  }
+
+  private _handleSavePreset() {
+    const name = this.presetNameInput.trim();
+
+    if (!name) {
+      this.presetSaveError = 'Please enter a preset name';
+      return;
+    }
+
+    if (this.currentUrls.length === 0) {
+      this.presetSaveError = 'No URLs to save';
+      return;
+    }
+
+    const result = storageService.savePreset(name, this.currentUrls);
+    if (result) {
+      this.savedPresets = storageService.getPresets();
+      this.presetNameInput = '';
+      this.presetSaveSuccess = true;
+      setTimeout(() => {
+        this.presetSaveSuccess = false;
+      }, 2000);
+    } else {
+      this.presetSaveError = 'Failed to save preset (storage full)';
+    }
+  }
+
+  private _handleLoadPreset(presetId: string) {
+    const preset = storageService.getPreset(presetId);
+    if (!preset) return;
+
+    // Dispatch import event with the preset URLs
+    this.dispatchEvent(
+      new CustomEvent('import-urls', {
+        bubbles: true,
+        composed: true,
+        detail: { urls: preset.urls },
+      })
+    );
+
+    // Close the modal
+    this._close();
+  }
+
+  private _handleDeletePreset(presetId: string) {
+    storageService.deletePreset(presetId);
+    this.savedPresets = storageService.getPresets();
   }
 
   private _setTab(tab: ModalTab) {

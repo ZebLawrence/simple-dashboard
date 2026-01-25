@@ -1,6 +1,7 @@
-import type { WorkspaceState } from '../types/index.js';
+import type { WorkspaceState, SavedPreset } from '../types/index.js';
 
 const STORAGE_KEY = 'dashboard-workspace-state';
+const PRESETS_STORAGE_KEY = 'dashboard-saved-presets';
 
 /**
  * Service for persisting workspace state to localStorage
@@ -173,6 +174,102 @@ export class StorageService {
       }
     }
 
+    return true;
+  }
+
+  // ==================== Preset Management ====================
+
+  /**
+   * Get all saved presets
+   */
+  getPresets(): SavedPreset[] {
+    try {
+      const json = localStorage.getItem(PRESETS_STORAGE_KEY);
+      if (!json) {
+        return [];
+      }
+      const parsed = JSON.parse(json);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+      // Filter out any invalid presets
+      return parsed.filter((p: unknown) => this.isValidPreset(p));
+    } catch (error) {
+      console.error('Error loading presets:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Save a new preset
+   */
+  savePreset(name: string, urls: string[]): SavedPreset | null {
+    try {
+      const presets = this.getPresets();
+      const newPreset: SavedPreset = {
+        id: `preset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: name.trim(),
+        urls,
+        createdAt: Date.now(),
+      };
+      presets.push(newPreset);
+      localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(presets));
+      return newPreset;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        console.error('Storage quota exceeded:', error);
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a preset by ID
+   */
+  deletePreset(id: string): boolean {
+    try {
+      const presets = this.getPresets();
+      const filtered = presets.filter(p => p.id !== id);
+      if (filtered.length === presets.length) {
+        return false; // Preset not found
+      }
+      localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(filtered));
+      return true;
+    } catch (error) {
+      console.error('Error deleting preset:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get a preset by ID
+   */
+  getPreset(id: string): SavedPreset | null {
+    const presets = this.getPresets();
+    return presets.find(p => p.id === id) || null;
+  }
+
+  /**
+   * Validate that an object is a valid SavedPreset
+   */
+  private isValidPreset(obj: unknown): obj is SavedPreset {
+    if (!obj || typeof obj !== 'object') {
+      return false;
+    }
+    const preset = obj as Record<string, unknown>;
+    if (typeof preset.id !== 'string' || preset.id.length === 0) {
+      return false;
+    }
+    if (typeof preset.name !== 'string' || preset.name.length === 0) {
+      return false;
+    }
+    if (!Array.isArray(preset.urls)) {
+      return false;
+    }
+    if (typeof preset.createdAt !== 'number') {
+      return false;
+    }
     return true;
   }
 }

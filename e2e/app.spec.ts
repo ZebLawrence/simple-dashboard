@@ -39,7 +39,7 @@ test.describe('Adding Iframe', () => {
 
     // Verify the modal content is visible
     const modalHeader = modal.locator('.modal-header');
-    await expect(modalHeader).toContainText('Add Iframe');
+    await expect(modalHeader).toContainText('Manage Iframes');
 
     // Step 4: Enter URL in input field
     const urlInput = modal.locator('#url-input');

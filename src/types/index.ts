@@ -38,3 +38,17 @@ export interface WorkspaceState {
   /** Grid layout configuration */
   grid: GridConfig;
 }
+
+/**
+ * A saved preset containing a set of URLs
+ */
+export interface SavedPreset {
+  /** Unique identifier for the preset */
+  id: string;
+  /** User-defined name for the preset */
+  name: string;
+  /** Array of URLs in this preset */
+  urls: string[];
+  /** Timestamp when the preset was created */
+  createdAt: number;
+}

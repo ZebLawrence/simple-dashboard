@@ -118,13 +118,14 @@ describe('AddIframeModal', () => {
     expect(header!.textContent).to.equal('Manage Iframes');
   });
 
-  it('renders tabs for Add URL and Import/Export', async () => {
+  it('renders tabs for Add URL, Import/Export, and Saved Presets', async () => {
     const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
 
     const tabs = el.shadowRoot!.querySelectorAll('.tab');
-    expect(tabs.length).to.equal(2);
+    expect(tabs.length).to.equal(3);
     expect(tabs[0].textContent!.trim()).to.equal('Add URL');
     expect(tabs[1].textContent!.trim()).to.equal('Import / Export');
+    expect(tabs[2].textContent!.trim()).to.equal('Saved Presets');
   });
 
   it('shows Add URL tab by default', async () => {
@@ -598,7 +599,8 @@ describe('AddIframeModal', () => {
       importButton.click();
       await el.updateComplete;
 
-      const errorMessage = el.shadowRoot!.querySelectorAll('.error-message')[1] as HTMLElement;
+      // On import-export tab, there's only one error-message element
+      const errorMessage = el.shadowRoot!.querySelector('.error-message') as HTMLElement;
       expect(errorMessage.classList.contains('visible')).to.be.true;
       expect(el.open).to.be.true; // Should stay open
     });
@@ -648,10 +650,202 @@ describe('AddIframeModal', () => {
       await el.updateComplete;
       el.open = true;
       await el.updateComplete;
+      // Wait for the state changes from _onOpen to be applied
+      await el.updateComplete;
 
       // Should be back on Add URL tab
       const activeTab = el.shadowRoot!.querySelector('.tab.active');
       expect(activeTab!.textContent!.trim()).to.equal('Add URL');
+    });
+  });
+
+  describe('presets functionality', () => {
+    beforeEach(() => {
+      // Clear presets before each test
+      localStorage.removeItem('dashboard-saved-presets');
+    });
+
+    afterEach(() => {
+      localStorage.removeItem('dashboard-saved-presets');
+    });
+
+    it('switches to presets tab when clicked', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const presetsTab = el.shadowRoot!.querySelectorAll('.tab')[2] as HTMLButtonElement;
+      presetsTab.click();
+      await el.updateComplete;
+
+      expect(presetsTab.classList.contains('active')).to.be.true;
+
+      // Should show save section and presets list section
+      const sectionLabels = el.shadowRoot!.querySelectorAll('.section-label');
+      expect(sectionLabels.length).to.equal(2);
+      expect(sectionLabels[0].textContent).to.contain('Save Current');
+      expect(sectionLabels[1].textContent).to.contain('Saved Presets');
+    });
+
+    it('shows empty state when no presets saved', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const presetsTab = el.shadowRoot!.querySelectorAll('.tab')[2] as HTMLButtonElement;
+      presetsTab.click();
+      await el.updateComplete;
+
+      const emptyState = el.shadowRoot!.querySelector('.empty-state');
+      expect(emptyState).to.exist;
+      expect(emptyState!.textContent).to.contain('No saved presets');
+    });
+
+    it('disables save button when no URLs to save', async () => {
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open .currentUrls=${[]}></add-iframe-modal>`);
+
+      const presetsTab = el.shadowRoot!.querySelectorAll('.tab')[2] as HTMLButtonElement;
+      presetsTab.click();
+      await el.updateComplete;
+
+      const saveButton = el.shadowRoot!.querySelector('.save-button') as HTMLButtonElement;
+      expect(saveButton.disabled).to.be.true;
+    });
+
+    it('enables save button when URLs exist', async () => {
+      const urls = ['https://example.com'];
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open .currentUrls=${urls}></add-iframe-modal>`);
+
+      const presetsTab = el.shadowRoot!.querySelectorAll('.tab')[2] as HTMLButtonElement;
+      presetsTab.click();
+      await el.updateComplete;
+
+      const saveButton = el.shadowRoot!.querySelector('.save-button') as HTMLButtonElement;
+      expect(saveButton.disabled).to.be.false;
+    });
+
+    it('saves preset when name is entered and save clicked', async () => {
+      const urls = ['https://example.com', 'https://example.org'];
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open .currentUrls=${urls}></add-iframe-modal>`);
+
+      const presetsTab = el.shadowRoot!.querySelectorAll('.tab')[2] as HTMLButtonElement;
+      presetsTab.click();
+      await el.updateComplete;
+
+      // Enter preset name
+      const nameInput = el.shadowRoot!.querySelector('.save-preset-form input') as HTMLInputElement;
+      nameInput.value = 'My Preset';
+      nameInput.dispatchEvent(new Event('input'));
+      await el.updateComplete;
+
+      // Click save
+      const saveButton = el.shadowRoot!.querySelector('.save-button') as HTMLButtonElement;
+      saveButton.click();
+      await el.updateComplete;
+
+      // Should show the preset in the list
+      const presetItems = el.shadowRoot!.querySelectorAll('.preset-item');
+      expect(presetItems.length).to.equal(1);
+
+      const presetName = presetItems[0].querySelector('.preset-name');
+      expect(presetName!.textContent).to.equal('My Preset');
+    });
+
+    it('shows error when trying to save without a name', async () => {
+      const urls = ['https://example.com'];
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open .currentUrls=${urls}></add-iframe-modal>`);
+
+      const presetsTab = el.shadowRoot!.querySelectorAll('.tab')[2] as HTMLButtonElement;
+      presetsTab.click();
+      await el.updateComplete;
+
+      // Click save without entering name
+      const saveButton = el.shadowRoot!.querySelector('.save-button') as HTMLButtonElement;
+      saveButton.click();
+      await el.updateComplete;
+
+      const errorMessage = el.shadowRoot!.querySelector('.error-message');
+      expect(errorMessage!.classList.contains('visible')).to.be.true;
+    });
+
+    it('dispatches import-urls event when preset is loaded', async () => {
+      // Pre-save a preset
+      const presetUrls = ['https://preset1.com', 'https://preset2.com'];
+      localStorage.setItem('dashboard-saved-presets', JSON.stringify([{
+        id: 'test-preset',
+        name: 'Test Preset',
+        urls: presetUrls,
+        createdAt: Date.now(),
+      }]));
+
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const presetsTab = el.shadowRoot!.querySelectorAll('.tab')[2] as HTMLButtonElement;
+      presetsTab.click();
+      await el.updateComplete;
+
+      let eventDetail: { urls: string[] } | null = null;
+      el.addEventListener('import-urls', ((e: CustomEvent) => {
+        eventDetail = e.detail;
+      }) as EventListener);
+
+      // Click load button
+      const loadButton = el.shadowRoot!.querySelector('.load-button') as HTMLButtonElement;
+      loadButton.click();
+
+      expect(eventDetail).to.not.be.null;
+      expect(eventDetail!.urls).to.deep.equal(presetUrls);
+    });
+
+    it('removes preset when delete is clicked', async () => {
+      // Pre-save a preset
+      localStorage.setItem('dashboard-saved-presets', JSON.stringify([{
+        id: 'test-preset',
+        name: 'Test Preset',
+        urls: ['https://example.com'],
+        createdAt: Date.now(),
+      }]));
+
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const presetsTab = el.shadowRoot!.querySelectorAll('.tab')[2] as HTMLButtonElement;
+      presetsTab.click();
+      await el.updateComplete;
+
+      // Should have one preset
+      let presetItems = el.shadowRoot!.querySelectorAll('.preset-item');
+      expect(presetItems.length).to.equal(1);
+
+      // Click delete button
+      const deleteButton = el.shadowRoot!.querySelector('.delete-button') as HTMLButtonElement;
+      deleteButton.click();
+      await el.updateComplete;
+
+      // Should now show empty state
+      presetItems = el.shadowRoot!.querySelectorAll('.preset-item');
+      expect(presetItems.length).to.equal(0);
+
+      const emptyState = el.shadowRoot!.querySelector('.empty-state');
+      expect(emptyState).to.exist;
+    });
+
+    it('closes modal after loading a preset', async () => {
+      // Pre-save a preset
+      localStorage.setItem('dashboard-saved-presets', JSON.stringify([{
+        id: 'test-preset',
+        name: 'Test Preset',
+        urls: ['https://example.com'],
+        createdAt: Date.now(),
+      }]));
+
+      const el = await fixture<AddIframeModal>(html`<add-iframe-modal open></add-iframe-modal>`);
+
+      const presetsTab = el.shadowRoot!.querySelectorAll('.tab')[2] as HTMLButtonElement;
+      presetsTab.click();
+      await el.updateComplete;
+
+      // Click load button
+      const loadButton = el.shadowRoot!.querySelector('.load-button') as HTMLButtonElement;
+      loadButton.click();
+      await el.updateComplete;
+
+      expect(el.open).to.be.false;
     });
   });
 });

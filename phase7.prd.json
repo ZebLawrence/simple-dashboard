@@ -26,7 +26,7 @@
         "Add fullscreen transition animation",
         "Verify animations feel smooth and responsive"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "visual",

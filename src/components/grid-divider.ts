@@ -21,15 +21,17 @@ export class GridDivider extends LitElement {
     .divider {
       position: absolute;
       background-color: #0f3460;
-      transition: background-color 0.15s ease;
+      transition: background-color 0.15s ease, box-shadow 0.15s ease;
     }
 
     .divider:hover {
       background-color: #4a90d9;
+      box-shadow: 0 0 8px rgba(74, 144, 217, 0.5);
     }
 
     .divider.dragging {
       background-color: #4a90d9;
+      box-shadow: 0 0 12px rgba(74, 144, 217, 0.7);
     }
 
     :host([orientation='vertical']) .divider {

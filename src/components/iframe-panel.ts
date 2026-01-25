@@ -24,6 +24,9 @@ export class IframePanel extends LitElement {
   @state()
   private _isFullscreen = false;
 
+  @state()
+  private _isFullscreenExiting = false;
+
   static override styles = css`
     :host {
       display: block;
@@ -226,6 +229,21 @@ export class IframePanel extends LitElement {
       }
     }
 
+    @keyframes fullscreen-exit {
+      from {
+        opacity: 1;
+        transform: scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+    }
+
+    .fullscreen-overlay.exiting {
+      animation: fullscreen-exit 0.2s ease-in forwards;
+    }
+
     .fullscreen-toolbar {
       position: absolute;
       top: 0;
@@ -386,8 +404,14 @@ export class IframePanel extends LitElement {
 
   private _handleExitFullscreen(e?: Event) {
     e?.stopPropagation();
-    this._isFullscreen = false;
-    document.removeEventListener('keydown', this._handleFullscreenKeydown);
+    // Trigger exit animation
+    this._isFullscreenExiting = true;
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+      this._isFullscreen = false;
+      this._isFullscreenExiting = false;
+      document.removeEventListener('keydown', this._handleFullscreenKeydown);
+    }, 200); // Match animation duration
   }
 
   private _handleFullscreenKeydown = (e: KeyboardEvent) => {
@@ -444,7 +468,7 @@ export class IframePanel extends LitElement {
       </div>
       ${this._isFullscreen
         ? html`
-            <div class="fullscreen-overlay">
+            <div class="fullscreen-overlay ${this._isFullscreenExiting ? 'exiting' : ''}">
               <div class="fullscreen-toolbar">
                 <button class="exit-fullscreen-button" @click=${this._handleExitFullscreen} title="Exit Fullscreen">×</button>
               </div>

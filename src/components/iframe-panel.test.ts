@@ -1,5 +1,5 @@
 import { html } from 'lit';
-import { fixture, expect, oneEvent } from '@open-wc/testing';
+import { fixture, expect, oneEvent, aTimeout } from '@open-wc/testing';
 import './iframe-panel.js';
 import type { IframePanel } from './iframe-panel.js';
 
@@ -707,6 +707,8 @@ describe('IframePanel', () => {
 
       const exitButton = el.shadowRoot!.querySelector('.exit-fullscreen-button') as HTMLButtonElement;
       exitButton.click();
+      // Wait for exit animation to complete (200ms)
+      await aTimeout(250);
       await el.updateComplete;
 
       expect(el.isFullscreen).to.be.false;
@@ -721,6 +723,8 @@ describe('IframePanel', () => {
 
       const exitButton = el.shadowRoot!.querySelector('.exit-fullscreen-button') as HTMLButtonElement;
       exitButton.click();
+      // Wait for exit animation to complete (200ms)
+      await aTimeout(250);
       await el.updateComplete;
 
       const overlay = el.shadowRoot!.querySelector('.fullscreen-overlay');
@@ -736,6 +740,8 @@ describe('IframePanel', () => {
       expect(el.isFullscreen).to.be.true;
 
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      // Wait for exit animation to complete (200ms)
+      await aTimeout(250);
       await el.updateComplete;
 
       expect(el.isFullscreen).to.be.false;
@@ -943,6 +949,8 @@ describe('IframePanel', () => {
       // Exit fullscreen
       const exitButton = el.shadowRoot!.querySelector('.exit-fullscreen-button') as HTMLButtonElement;
       exitButton.click();
+      // Wait for exit animation to complete (200ms)
+      await aTimeout(250);
       await el.updateComplete;
       expect(el.isFullscreen).to.be.false;
     });

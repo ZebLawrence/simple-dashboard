@@ -51,3 +51,37 @@ All PRD requirements for iframe-grid unit tests are satisfied.
 
 Tests: 287 passed, 0 failed
 Typecheck: Pass
+
+## Phase 7: Add transitions and hover effects - COMPLETE
+
+Implemented smooth CSS animations throughout the application:
+
+1. **Toolbar fade transition** (already existed in iframe-panel.ts:55)
+   - `transition: opacity 0.2s ease;` for smooth toolbar show/hide
+
+2. **Add-iframe-button scale effect** (already existed in add-iframe-button.ts:29-36)
+   - `transform: scale(1.05)` on hover with `transition: 0.15s ease`
+   - `transform: scale(0.95)` on active state
+
+3. **Grid divider animations** (enhanced in grid-divider.ts:21-33)
+   - Added `box-shadow 0.15s ease` transition
+   - Added glow effect on hover: `box-shadow: 0 0 8px rgba(74, 144, 217, 0.5);`
+   - Added stronger glow during drag: `box-shadow: 0 0 12px rgba(74, 144, 217, 0.7);`
+
+4. **Modal fade-in animation** (added to add-iframe-modal.ts:69-113)
+   - Backdrop fade-in: `@keyframes backdrop-fade-in` with 0.2s ease-out
+   - Modal slide-in: `@keyframes modal-slide-in` with scale+translate effect, 0.25s ease-out
+   - Button press feedback: `transform: scale(0.97)` on active
+
+5. **Fullscreen transition animations** (enhanced in iframe-panel.ts:218-244)
+   - Enter animation already existed: `@keyframes fullscreen-enter`
+   - Added exit animation: `@keyframes fullscreen-exit` with reverse scale/fade
+   - Added `_isFullscreenExiting` state for exit animation control
+   - Updated exit handler with 200ms delay to allow animation to complete
+
+6. **Updated tests** (iframe-panel.test.ts)
+   - Added `aTimeout(250)` to fullscreen exit tests to account for animation delay
+   - Tests now properly wait for exit animation before asserting state
+
+Tests: 287 passed, 0 failed
+Typecheck: Pass

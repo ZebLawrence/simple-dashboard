@@ -77,6 +77,7 @@ export class AddIframeModal extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
+      animation: backdrop-fade-in 0.2s ease-out;
     }
 
     .modal {
@@ -87,6 +88,27 @@ export class AddIframeModal extends LitElement {
       max-width: 90%;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
       border: 1px solid #0f3460;
+      animation: modal-slide-in 0.25s ease-out;
+    }
+
+    @keyframes backdrop-fade-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes modal-slide-in {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
     }
 
     .modal-header {
@@ -161,7 +183,11 @@ export class AddIframeModal extends LitElement {
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
-      transition: background-color 0.15s ease;
+      transition: background-color 0.15s ease, transform 0.1s ease;
+    }
+
+    button:active {
+      transform: scale(0.97);
     }
 
     .cancel-button {

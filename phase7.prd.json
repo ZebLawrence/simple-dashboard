@@ -103,7 +103,7 @@
         "Verify iframe removed from grid",
         "Verify grid layout adjusts"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "testing",

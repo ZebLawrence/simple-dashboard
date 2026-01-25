@@ -147,3 +147,30 @@ All tests use beforeEach to clear localStorage for clean state.
 E2E Tests: 7 passed, 0 failed
 Unit Tests: 288 passed, 0 failed
 Typecheck: Pass
+
+## Phase 7: Write Playwright e2e test for removing iframe - COMPLETE
+
+Created comprehensive e2e tests in e2e/app.spec.ts for the remove iframe workflow:
+
+1. **Test: can remove an iframe by clicking close button** (lines 156-186)
+   - Start with existing iframe in grid (adds one first via modal)
+   - Hover over iframe panel to reveal toolbar
+   - Click close button in toolbar
+   - Verify iframe removed from grid (count goes to 0)
+
+2. **Test: grid layout adjusts after removing iframe** (lines 189-227)
+   - Adds two iframes to the grid
+   - Removes the first iframe
+   - Verifies only one iframe remains
+   - Verifies the remaining iframe is the correct one (example.org)
+
+3. **Test: can remove all iframes from grid** (lines 230-253)
+   - Adds an iframe, then removes it
+   - Verifies grid is empty after removal
+   - Verifies add functionality still works after removing all iframes
+
+All tests use beforeEach to clear localStorage for clean state.
+
+E2E Tests: 10 passed, 0 failed
+Unit Tests: 288 passed, 0 failed
+Typecheck: Pass

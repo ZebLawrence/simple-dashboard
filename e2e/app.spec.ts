@@ -144,3 +144,114 @@ test.describe('Adding Iframe', () => {
     await expect(urlInput).toHaveClass(/error/);
   });
 });
+
+test.describe('Removing Iframe', () => {
+  test.beforeEach(async ({ page }) => {
+    // Clear localStorage before each test to start with clean state
+    await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+  });
+
+  test('can remove an iframe by clicking close button', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Step 1: Start with existing iframe in grid - add one first
+    const addButton = dashboardApp.locator('add-iframe-button');
+    await addButton.locator('button').click();
+
+    const modal = dashboardApp.locator('add-iframe-modal');
+    await expect(modal).toHaveAttribute('open', '');
+
+    const urlInput = modal.locator('#url-input');
+    await urlInput.fill('https://example.com');
+    await modal.locator('.add-button').click();
+
+    // Verify iframe was added
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanel = iframeGrid.locator('iframe-panel');
+    await expect(iframePanel).toBeVisible();
+    await expect(iframePanel).toHaveCount(1);
+
+    // Step 2: Hover over iframe panel to reveal toolbar
+    await iframePanel.hover();
+
+    // Step 3: Click close button in toolbar
+    const closeButton = iframePanel.locator('.close-button');
+    await expect(closeButton).toBeVisible();
+    await closeButton.click();
+
+    // Step 4: Verify iframe removed from grid
+    await expect(iframePanel).toHaveCount(0);
+  });
+
+  test('grid layout adjusts after removing iframe', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Add two iframes
+    const addButton = dashboardApp.locator('add-iframe-button');
+    const modal = dashboardApp.locator('add-iframe-modal');
+
+    // Add first iframe
+    await addButton.locator('button').click();
+    await expect(modal).toHaveAttribute('open', '');
+    await modal.locator('#url-input').fill('https://example.com');
+    await modal.locator('.add-button').click();
+    await expect(modal).not.toHaveAttribute('open', '');
+
+    // Add second iframe
+    await addButton.locator('button').click();
+    await expect(modal).toHaveAttribute('open', '');
+    await modal.locator('#url-input').fill('https://example.org');
+    await modal.locator('.add-button').click();
+    await expect(modal).not.toHaveAttribute('open', '');
+
+    // Verify we have two iframes
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanels = iframeGrid.locator('iframe-panel');
+    await expect(iframePanels).toHaveCount(2);
+
+    // Remove the first iframe
+    const firstPanel = iframePanels.first();
+    await firstPanel.hover();
+    const closeButton = firstPanel.locator('.close-button');
+    await closeButton.click();
+
+    // Step 5: Verify grid layout adjusts - now only one iframe
+    await expect(iframePanels).toHaveCount(1);
+
+    // Verify the remaining iframe is the second one we added
+    const remainingPanel = iframePanels.first();
+    await expect(remainingPanel).toHaveAttribute('url', 'https://example.org');
+  });
+
+  test('can remove all iframes from grid', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Add an iframe
+    const addButton = dashboardApp.locator('add-iframe-button');
+    await addButton.locator('button').click();
+
+    const modal = dashboardApp.locator('add-iframe-modal');
+    await modal.locator('#url-input').fill('https://example.com');
+    await modal.locator('.add-button').click();
+
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanel = iframeGrid.locator('iframe-panel');
+    await expect(iframePanel).toHaveCount(1);
+
+    // Remove the iframe
+    await iframePanel.hover();
+    await iframePanel.locator('.close-button').click();
+
+    // Verify grid is empty
+    await expect(iframePanel).toHaveCount(0);
+
+    // Verify we can still add a new iframe after removing all
+    await addButton.locator('button').click();
+    await expect(modal).toHaveAttribute('open', '');
+  });
+});

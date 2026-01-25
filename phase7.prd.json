@@ -52,7 +52,7 @@
         "Test refresh triggers iframe reload",
         "Run tests and verify all pass"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "testing",
@@ -65,7 +65,7 @@
         "Test resize events update ratios",
         "Run tests and verify all pass"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "testing",

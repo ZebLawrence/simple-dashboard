@@ -24,3 +24,30 @@ Verified that comprehensive unit tests for StorageService already exist in src/s
 
 Tests: 287 passed, 0 failed
 Typecheck: Pass
+
+## Phase 7: Write open-wc unit tests for iframe-panel - COMPLETE
+
+Verified comprehensive unit tests already exist in src/components/iframe-panel.test.ts (969 lines):
+- Test component renders with url property (lines 26-31, 40-46)
+- Test toolbar shows on hover (lines 218-227)
+- Test close button dispatches event (lines 154-176)
+- Test edit mode activates correctly (lines 332-521)
+- Test refresh triggers iframe reload (lines 524-635)
+- Additional coverage: fullscreen functionality, toolbar interactions, event propagation
+
+All PRD requirements for iframe-panel unit tests are satisfied.
+
+## Phase 7: Write open-wc unit tests for iframe-grid - COMPLETE
+
+Verified comprehensive unit tests already exist in src/components/iframe-grid.test.ts (1476 lines):
+- Test grid renders correct number of panels (lines 107-139)
+- Test grid applies column/row ratios (lines 159-195)
+- Test add-iframe updates grid (covered via iframes property updates)
+- Test remove-iframe updates grid (covered via iframes property updates)
+- Test resize events update ratios (lines 294-730 - extensive drag handling tests)
+- Additional coverage: empty state, dividers, edge cases, mouseup/mouseleave handling
+
+All PRD requirements for iframe-grid unit tests are satisfied.
+
+Tests: 287 passed, 0 failed
+Typecheck: Pass

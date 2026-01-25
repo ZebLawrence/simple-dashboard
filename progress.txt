@@ -240,3 +240,38 @@ Implementation notes:
 E2E Tests: 17 passed, 0 failed
 Unit Tests: 288 passed, 0 failed
 Typecheck: Pass
+
+## Phase 7: Write Playwright e2e test for fullscreen mode - COMPLETE
+
+Created comprehensive e2e tests in e2e/app.spec.ts for the fullscreen mode workflow:
+
+1. **Test: can enter fullscreen mode by clicking fullscreen button** (lines 715-746)
+   - Start with iframe in grid
+   - Hover over iframe panel to reveal toolbar
+   - Click fullscreen button
+   - Verify fullscreen overlay appears with fixed positioning
+   - Verify fullscreen iframe is visible with correct src URL
+
+2. **Test: can exit fullscreen mode by pressing Escape key** (lines 748-779)
+   - Enter fullscreen mode
+   - Press Escape key
+   - Wait for exit animation (250ms)
+   - Verify fullscreen overlay is hidden
+   - Verify normal grid view is restored
+
+3. **Test: can exit fullscreen mode by clicking exit button** (lines 781-811)
+   - Enter fullscreen mode
+   - Click the exit fullscreen button (.exit-fullscreen-button)
+   - Verify fullscreen overlay is hidden
+   - Verify normal grid view is restored
+
+4. **Test: fullscreen overlay covers entire viewport** (lines 813-843)
+   - Enter fullscreen mode
+   - Verify overlay uses fixed positioning
+   - Verify overlay has top/left/right/bottom: 0px (full viewport coverage)
+
+All PRD requirements for fullscreen mode e2e tests are satisfied.
+
+E2E Tests: 21 passed, 0 failed
+Unit Tests: 288 passed, 0 failed
+Typecheck: Pass

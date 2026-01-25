@@ -140,7 +140,7 @@
         "Press Escape key",
         "Verify normal grid view restored"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

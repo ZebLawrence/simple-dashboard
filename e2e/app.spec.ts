@@ -690,3 +690,160 @@ test.describe('Persistence', () => {
     await expect(restoredPanels).toHaveCount(0);
   });
 });
+
+test.describe('Fullscreen Mode', () => {
+  // Helper function to add an iframe
+  async function addIframe(page: import('@playwright/test').Page, url: string) {
+    const dashboardApp = page.locator('dashboard-app');
+    const addButton = dashboardApp.locator('add-iframe-button');
+    await addButton.locator('button').click();
+
+    const modal = dashboardApp.locator('add-iframe-modal');
+    await expect(modal).toHaveAttribute('open', '');
+    await modal.locator('#url-input').fill(url);
+    await modal.locator('.add-button').click();
+    await expect(modal).not.toHaveAttribute('open', '');
+  }
+
+  test.beforeEach(async ({ page }) => {
+    // Clear localStorage before each test to start with clean state
+    await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+  });
+
+  test('can enter fullscreen mode by clicking fullscreen button', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Step 1: Start with iframe in grid
+    await addIframe(page, 'https://example.com');
+
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanel = iframeGrid.locator('iframe-panel');
+    await expect(iframePanel).toBeVisible();
+
+    // Step 2: Hover to reveal toolbar and click fullscreen button
+    await iframePanel.hover();
+    const fullscreenButton = iframePanel.locator('.fullscreen-button');
+    await expect(fullscreenButton).toBeVisible();
+    await fullscreenButton.click();
+
+    // Step 3: Verify iframe fills viewport - fullscreen overlay should be visible
+    const fullscreenOverlay = iframePanel.locator('.fullscreen-overlay');
+    await expect(fullscreenOverlay).toBeVisible();
+
+    // Verify the overlay has fixed positioning - check computed style
+    const overlayPosition = await fullscreenOverlay.evaluate((el) => {
+      return window.getComputedStyle(el).position;
+    });
+    expect(overlayPosition).toBe('fixed');
+
+    // Verify the fullscreen iframe is present within the overlay
+    const fullscreenIframe = fullscreenOverlay.locator('iframe.fullscreen-iframe');
+    await expect(fullscreenIframe).toBeVisible();
+    await expect(fullscreenIframe).toHaveAttribute('src', 'https://example.com');
+  });
+
+  test('can exit fullscreen mode by pressing Escape key', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Add an iframe
+    await addIframe(page, 'https://example.com');
+
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanel = iframeGrid.locator('iframe-panel');
+    await expect(iframePanel).toBeVisible();
+
+    // Enter fullscreen mode
+    await iframePanel.hover();
+    await iframePanel.locator('.fullscreen-button').click();
+
+    // Verify fullscreen overlay is visible
+    const fullscreenOverlay = iframePanel.locator('.fullscreen-overlay');
+    await expect(fullscreenOverlay).toBeVisible();
+
+    // Step 4: Press Escape key to exit
+    await page.keyboard.press('Escape');
+
+    // Wait for exit animation to complete (200ms)
+    await page.waitForTimeout(250);
+
+    // Step 5: Verify normal grid view restored - fullscreen overlay should be gone
+    await expect(fullscreenOverlay).not.toBeVisible();
+
+    // The iframe panel should still be visible in the grid
+    await expect(iframePanel).toBeVisible();
+    await expect(iframePanel).toHaveAttribute('url', 'https://example.com');
+  });
+
+  test('can exit fullscreen mode by clicking exit button', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Add an iframe
+    await addIframe(page, 'https://example.com');
+
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanel = iframeGrid.locator('iframe-panel');
+    await expect(iframePanel).toBeVisible();
+
+    // Enter fullscreen mode
+    await iframePanel.hover();
+    await iframePanel.locator('.fullscreen-button').click();
+
+    // Verify fullscreen overlay is visible
+    const fullscreenOverlay = iframePanel.locator('.fullscreen-overlay');
+    await expect(fullscreenOverlay).toBeVisible();
+
+    // Click the exit fullscreen button
+    const exitButton = fullscreenOverlay.locator('.exit-fullscreen-button');
+    await expect(exitButton).toBeVisible();
+    await exitButton.click();
+
+    // Wait for exit animation to complete (200ms)
+    await page.waitForTimeout(250);
+
+    // Verify normal grid view restored
+    await expect(fullscreenOverlay).not.toBeVisible();
+    await expect(iframePanel).toBeVisible();
+  });
+
+  test('fullscreen overlay covers entire viewport', async ({ page }) => {
+    const dashboardApp = page.locator('dashboard-app');
+    await expect(dashboardApp).toBeVisible();
+
+    // Add an iframe
+    await addIframe(page, 'https://example.com');
+
+    const iframeGrid = dashboardApp.locator('iframe-grid');
+    const iframePanel = iframeGrid.locator('iframe-panel');
+
+    // Enter fullscreen mode
+    await iframePanel.hover();
+    await iframePanel.locator('.fullscreen-button').click();
+
+    const fullscreenOverlay = iframePanel.locator('.fullscreen-overlay');
+    await expect(fullscreenOverlay).toBeVisible();
+
+    // Verify the overlay uses fixed positioning with full viewport coverage via CSS
+    const overlayStyles = await fullscreenOverlay.evaluate((el) => {
+      const styles = window.getComputedStyle(el);
+      return {
+        position: styles.position,
+        top: styles.top,
+        left: styles.left,
+        right: styles.right,
+        bottom: styles.bottom,
+      };
+    });
+
+    // Verify fixed positioning with 0 values for all edges
+    expect(overlayStyles.position).toBe('fixed');
+    expect(overlayStyles.top).toBe('0px');
+    expect(overlayStyles.left).toBe('0px');
+    expect(overlayStyles.right).toBe('0px');
+    expect(overlayStyles.bottom).toBe('0px');
+  });
+});

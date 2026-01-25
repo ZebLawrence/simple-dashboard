@@ -12,7 +12,10 @@
     "test": "web-test-runner",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "e2e:report": "playwright show-report"
+    "e2e:report": "playwright show-report",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write src/"
   },
   "keywords": [],
   "author": "",
@@ -25,15 +28,21 @@
     ]
   },
   "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^25.0.10",
     "@open-wc/testing": "^4.0.0",
     "@playwright/test": "^1.58.0",
-    "@types/mocha": "^10.0.10",
     "@web/dev-server-esbuild": "^1.0.4",
     "@web/test-runner": "^0.20.2",
     "@web/test-runner-puppeteer": "^0.18.0",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "prettier": "^3.4.2",
     "puppeteer": "^24.36.0",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.21.0",
     "vite": "^7.3.1"
   },
   "dependencies": {

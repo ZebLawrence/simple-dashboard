@@ -45,19 +45,6 @@ export class DashboardApp extends LitElement {
       flex-direction: column;
     }
 
-    .dashboard-header {
-      padding: 8px 16px;
-      background-color: var(--color-surface, ${unsafeCSS(themeColors.surface)});
-      border-bottom: 1px solid var(--color-border, ${unsafeCSS(themeColors.border)});
-    }
-
-    .dashboard-header h1 {
-      margin: 0;
-      font-size: 1.25rem;
-      font-weight: 500;
-      color: var(--color-accent, ${unsafeCSS(themeColors.accent)});
-    }
-
     .dashboard-content {
       flex: 1;
       overflow: hidden;
@@ -67,9 +54,6 @@ export class DashboardApp extends LitElement {
   override render() {
     return html`
       <div class="dashboard-container">
-        <header class="dashboard-header">
-          <h1>Simple Dashboard</h1>
-        </header>
         <main class="dashboard-content">
           <iframe-grid
             .iframes=${this.iframes}

@@ -77,55 +77,34 @@ describe('IframePanel', () => {
       expect(el.isHovered).to.be.false;
     });
 
-    it('sets isHovered to true on mouseenter', async () => {
+    it('sets isHovered to true on toolbar trigger mouseenter', async () => {
       const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
-      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+      const trigger = el.shadowRoot!.querySelector('.toolbar-trigger')!;
 
-      container.dispatchEvent(new MouseEvent('mouseenter'));
+      trigger.dispatchEvent(new MouseEvent('mouseenter'));
       await el.updateComplete;
 
       expect(el.isHovered).to.be.true;
     });
 
-    it('sets isHovered to false on mouseleave', async () => {
+    it('sets isHovered to false on toolbar mouseleave', async () => {
       const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
-      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+      const trigger = el.shadowRoot!.querySelector('.toolbar-trigger')!;
+      const toolbar = el.shadowRoot!.querySelector('.toolbar')!;
 
-      container.dispatchEvent(new MouseEvent('mouseenter'));
+      trigger.dispatchEvent(new MouseEvent('mouseenter'));
       await el.updateComplete;
-      container.dispatchEvent(new MouseEvent('mouseleave'));
+      toolbar.dispatchEvent(new MouseEvent('mouseleave'));
       await el.updateComplete;
 
       expect(el.isHovered).to.be.false;
     });
 
-    it('adds hovered class to container on mouseenter', async () => {
-      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
-      const container = el.shadowRoot!.querySelector('.iframe-container')!;
-
-      container.dispatchEvent(new MouseEvent('mouseenter'));
-      await el.updateComplete;
-
-      expect(container.classList.contains('hovered')).to.be.true;
-    });
-
-    it('removes hovered class from container on mouseleave', async () => {
-      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
-      const container = el.shadowRoot!.querySelector('.iframe-container')!;
-
-      container.dispatchEvent(new MouseEvent('mouseenter'));
-      await el.updateComplete;
-      container.dispatchEvent(new MouseEvent('mouseleave'));
-      await el.updateComplete;
-
-      expect(container.classList.contains('hovered')).to.be.false;
-    });
-
-    it('renders hover overlay for pointer event handling', async () => {
+    it('renders toolbar trigger zone at top of panel', async () => {
       const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
 
-      const overlay = el.shadowRoot!.querySelector('.hover-overlay');
-      expect(overlay).to.exist;
+      const trigger = el.shadowRoot!.querySelector('.toolbar-trigger');
+      expect(trigger).to.exist;
     });
   });
 
@@ -215,27 +194,27 @@ describe('IframePanel', () => {
       expect(styles.right).to.equal('0px');
     });
 
-    it('toolbar becomes visible when hovered', async () => {
+    it('toolbar becomes visible when trigger zone is hovered', async () => {
       const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
-      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+      const trigger = el.shadowRoot!.querySelector('.toolbar-trigger')!;
 
-      container.dispatchEvent(new MouseEvent('mouseenter'));
+      trigger.dispatchEvent(new MouseEvent('mouseenter'));
       await el.updateComplete;
 
       const toolbar = el.shadowRoot!.querySelector('.toolbar')!;
       expect(toolbar.classList.contains('visible')).to.be.true;
     });
 
-    it('toolbar hides when hover ends', async () => {
+    it('toolbar hides when mouse leaves toolbar', async () => {
       const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
-      const container = el.shadowRoot!.querySelector('.iframe-container')!;
-
-      container.dispatchEvent(new MouseEvent('mouseenter'));
-      await el.updateComplete;
-      container.dispatchEvent(new MouseEvent('mouseleave'));
-      await el.updateComplete;
-
+      const trigger = el.shadowRoot!.querySelector('.toolbar-trigger')!;
       const toolbar = el.shadowRoot!.querySelector('.toolbar')!;
+
+      trigger.dispatchEvent(new MouseEvent('mouseenter'));
+      await el.updateComplete;
+      toolbar.dispatchEvent(new MouseEvent('mouseleave'));
+      await el.updateComplete;
+
       expect(toolbar.classList.contains('visible')).to.be.false;
     });
   });
@@ -812,9 +791,9 @@ describe('IframePanel', () => {
 
     it('toolbar has pointer-events auto when visible', async () => {
       const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
-      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+      const trigger = el.shadowRoot!.querySelector('.toolbar-trigger')!;
 
-      container.dispatchEvent(new MouseEvent('mouseenter'));
+      trigger.dispatchEvent(new MouseEvent('mouseenter'));
       await el.updateComplete;
 
       const toolbar = el.shadowRoot!.querySelector('.toolbar') as HTMLElement;
@@ -884,9 +863,9 @@ describe('IframePanel', () => {
 
     it('toolbar buttons remain interactive when toolbar is visible', async () => {
       const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
-      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+      const trigger = el.shadowRoot!.querySelector('.toolbar-trigger')!;
 
-      container.dispatchEvent(new MouseEvent('mouseenter'));
+      trigger.dispatchEvent(new MouseEvent('mouseenter'));
       await el.updateComplete;
 
       const editButton = el.shadowRoot!.querySelector('.edit-button') as HTMLButtonElement;
@@ -896,23 +875,23 @@ describe('IframePanel', () => {
       expect(el.isEditingUrl).to.be.true;
     });
 
-    it('toolbar z-index is higher than hover overlay', async () => {
+    it('toolbar z-index is higher than toolbar trigger', async () => {
       const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com"></iframe-panel>`);
 
       const toolbar = el.shadowRoot!.querySelector('.toolbar') as HTMLElement;
-      const overlay = el.shadowRoot!.querySelector('.hover-overlay') as HTMLElement;
+      const trigger = el.shadowRoot!.querySelector('.toolbar-trigger') as HTMLElement;
       const toolbarZIndex = parseInt(window.getComputedStyle(toolbar).zIndex);
-      const overlayZIndex = parseInt(window.getComputedStyle(overlay).zIndex);
+      const triggerZIndex = parseInt(window.getComputedStyle(trigger).zIndex);
 
-      expect(toolbarZIndex).to.be.greaterThan(overlayZIndex);
+      expect(toolbarZIndex).to.be.greaterThan(triggerZIndex);
     });
 
     it('all toolbar actions work reliably in sequence', async () => {
       const el = await fixture<IframePanel>(html`<iframe-panel url="https://example.com" iframe-id="test-id"></iframe-panel>`);
-      const container = el.shadowRoot!.querySelector('.iframe-container')!;
+      const trigger = el.shadowRoot!.querySelector('.toolbar-trigger')!;
 
-      // Hover to show toolbar
-      container.dispatchEvent(new MouseEvent('mouseenter'));
+      // Hover trigger to show toolbar
+      trigger.dispatchEvent(new MouseEvent('mouseenter'));
       await el.updateComplete;
       expect(el.isHovered).to.be.true;
 

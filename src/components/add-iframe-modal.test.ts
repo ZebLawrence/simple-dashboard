@@ -68,7 +68,7 @@ describe('AddIframeModal', () => {
 
     const modal = el.shadowRoot!.querySelector('.modal')!;
     const styles = getComputedStyle(modal);
-    expect(styles.backgroundColor).to.equal('rgb(26, 26, 46)'); // #1a1a2e
+    expect(styles.backgroundColor).to.equal('rgb(28, 27, 26)'); // #1c1b1a
   });
 
   it('renders URL input field', async () => {

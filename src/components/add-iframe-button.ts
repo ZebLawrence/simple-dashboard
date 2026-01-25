@@ -17,8 +17,8 @@ export class AddIframeButton extends LitElement {
       height: 56px;
       border-radius: 50%;
       border: none;
-      background-color: #e94560;
-      color: #eaeaea;
+      background-color: #e07850;
+      color: #eae8e6;
       font-size: 28px;
       font-weight: 300;
       cursor: pointer;
@@ -30,19 +30,19 @@ export class AddIframeButton extends LitElement {
     }
 
     button:hover {
-      background-color: #ff6b6b;
+      background-color: #f08a62;
       transform: scale(1.05);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
     }
 
     button:active {
-      background-color: #c73e54;
+      background-color: #c66840;
       transform: scale(0.95);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     button:focus {
-      outline: 2px solid #4a90d9;
+      outline: 2px solid #c9a87c;
       outline-offset: 2px;
     }
 

@@ -38,8 +38,8 @@ export class IframePanel extends LitElement {
     .iframe-container {
       width: 100%;
       height: 100%;
-      background-color: #16213e;
-      border: 1px solid #0f3460;
+      background-color: #2a2826;
+      border: 1px solid #3d3937;
       box-sizing: border-box;
       position: relative;
     }
@@ -53,7 +53,7 @@ export class IframePanel extends LitElement {
       display: flex;
       justify-content: flex-end;
       gap: 4px;
-      background-color: rgba(15, 52, 96, 0.85);
+      background-color: rgba(42, 40, 38, 0.9);
       opacity: 0;
       transition: opacity 0.2s ease;
       z-index: 10;
@@ -65,18 +65,13 @@ export class IframePanel extends LitElement {
       pointer-events: auto;
     }
 
-    .hover-overlay {
+    .toolbar-trigger {
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
-      bottom: 0;
-      z-index: 5;
-      pointer-events: none;
-    }
-
-    .iframe-container.hovered .hover-overlay {
-      pointer-events: auto;
+      height: 10px;
+      z-index: 9;
     }
 
     .toolbar-button {
@@ -105,16 +100,16 @@ export class IframePanel extends LitElement {
     }
 
     .toolbar-button.close-button {
-      background-color: rgba(233, 69, 96, 0.9);
+      background-color: rgba(224, 120, 80, 0.9);
       font-size: 16px;
     }
 
     .toolbar-button.close-button:hover {
-      background-color: #e94560;
+      background-color: #e07850;
     }
 
     .toolbar-button.close-button:active {
-      background-color: #c73e54;
+      background-color: #c66840;
     }
 
     iframe {
@@ -138,8 +133,8 @@ export class IframePanel extends LitElement {
     }
 
     .url-edit-container {
-      background-color: #16213e;
-      border: 1px solid #0f3460;
+      background-color: #2a2826;
+      border: 1px solid #3d3937;
       border-radius: 8px;
       padding: 16px;
       width: 80%;
@@ -156,9 +151,9 @@ export class IframePanel extends LitElement {
     .url-edit-input {
       width: 100%;
       padding: 8px 12px;
-      border: 1px solid #0f3460;
+      border: 1px solid #3d3937;
       border-radius: 4px;
-      background-color: #1a1a2e;
+      background-color: #1c1b1a;
       color: white;
       font-size: 14px;
       box-sizing: border-box;
@@ -166,7 +161,7 @@ export class IframePanel extends LitElement {
 
     .url-edit-input:focus {
       outline: none;
-      border-color: #e94560;
+      border-color: #e07850;
     }
 
     .loading-indicator {
@@ -178,17 +173,17 @@ export class IframePanel extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: rgba(22, 33, 62, 0.9);
+      background-color: rgba(42, 40, 38, 0.95);
       padding: 12px 20px;
       border-radius: 8px;
-      border: 1px solid #0f3460;
+      border: 1px solid #3d3937;
     }
 
     .loading-spinner {
       width: 20px;
       height: 20px;
-      border: 2px solid rgba(233, 69, 96, 0.3);
-      border-top-color: #e94560;
+      border: 2px solid rgba(224, 120, 80, 0.3);
+      border-top-color: #e07850;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
       margin-right: 10px;
@@ -211,7 +206,7 @@ export class IframePanel extends LitElement {
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #1a1a2e;
+      background-color: #1c1b1a;
       z-index: 1000;
       display: flex;
       flex-direction: column;
@@ -253,7 +248,7 @@ export class IframePanel extends LitElement {
       display: flex;
       justify-content: flex-end;
       gap: 8px;
-      background-color: rgba(15, 52, 96, 0.85);
+      background-color: rgba(42, 40, 38, 0.9);
       z-index: 1001;
     }
 
@@ -269,7 +264,7 @@ export class IframePanel extends LitElement {
       height: 32px;
       border: none;
       border-radius: 4px;
-      background-color: rgba(233, 69, 96, 0.9);
+      background-color: rgba(224, 120, 80, 0.9);
       color: white;
       cursor: pointer;
       display: flex;
@@ -282,11 +277,11 @@ export class IframePanel extends LitElement {
     }
 
     .exit-fullscreen-button:hover {
-      background-color: #e94560;
+      background-color: #e07850;
     }
 
     .exit-fullscreen-button:active {
-      background-color: #c73e54;
+      background-color: #c66840;
     }
   `;
 
@@ -301,11 +296,11 @@ export class IframePanel extends LitElement {
     );
   }
 
-  private _handleMouseEnter() {
+  private _handleToolbarTriggerEnter() {
     this._isHovered = true;
   }
 
-  private _handleMouseLeave() {
+  private _handleToolbarLeave() {
     this._isHovered = false;
   }
 
@@ -423,18 +418,21 @@ export class IframePanel extends LitElement {
 
   override render() {
     return html`
-      <div
-        class="iframe-container ${this._isHovered ? 'hovered' : ''}"
-        @mouseenter=${this._handleMouseEnter}
-        @mouseleave=${this._handleMouseLeave}
-      >
-        <div class="toolbar ${this._isHovered ? 'visible' : ''}">
+      <div class="iframe-container">
+        <div
+          class="toolbar-trigger"
+          @mouseenter=${this._handleToolbarTriggerEnter}
+        ></div>
+        <div
+          class="toolbar ${this._isHovered ? 'visible' : ''}"
+          @mouseenter=${this._handleToolbarTriggerEnter}
+          @mouseleave=${this._handleToolbarLeave}
+        >
           <button class="toolbar-button edit-button" @click=${this._handleEditClick} title="Edit URL">✎</button>
           <button class="toolbar-button refresh-button" @click=${this._handleRefreshClick} title="Refresh">↻</button>
           <button class="toolbar-button fullscreen-button" @click=${this._handleFullscreenClick} title="Fullscreen">⛶</button>
           <button class="toolbar-button close-button" @click=${this._handleClose} title="Remove iframe">×</button>
         </div>
-        <div class="hover-overlay"></div>
         ${this._isEditingUrl
           ? html`
               <div class="url-edit-overlay" @click=${this._handleOverlayClick}>

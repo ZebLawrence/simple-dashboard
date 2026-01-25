@@ -478,7 +478,7 @@ describe('IframeGrid', () => {
       expect((el as any).boundHandleMouseMove).to.not.be.null;
     });
 
-    it('dispatches ratio-change event on vertical divider mousemove', async () => {
+    it('updates DOM directly on vertical divider mousemove without dispatching events', async () => {
       const testIframes: IframeConfig[] = [
         { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
         { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
@@ -491,11 +491,6 @@ describe('IframeGrid', () => {
       };
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
-      let ratioChangeEvent: CustomEvent | null = null;
-      el.addEventListener('ratio-change', ((e: CustomEvent) => {
-        ratioChangeEvent = e;
-      }) as EventListener);
-
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
@@ -504,15 +499,14 @@ describe('IframeGrid', () => {
       // Simulate mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
 
-      expect(ratioChangeEvent).to.not.be.null;
-      expect(ratioChangeEvent!.detail.orientation).to.equal('vertical');
-      expect(ratioChangeEvent!.detail.index).to.equal(0);
-      expect(ratioChangeEvent!.detail.columnRatios).to.be.an('array');
+      // Grid container style should be updated directly
+      const container = el.shadowRoot!.querySelector('.grid-container') as HTMLElement;
+      expect(container.style.gridTemplateColumns).to.not.be.empty;
 
       el.clearDragState();
     });
 
-    it('dispatches ratio-change event on horizontal divider mousemove', async () => {
+    it('updates DOM directly on horizontal divider mousemove without dispatching events', async () => {
       const testIframes: IframeConfig[] = [
         { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
         { id: '2', url: 'https://example.com/2', position: { row: 1, col: 0 } },
@@ -525,11 +519,6 @@ describe('IframeGrid', () => {
       };
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
-      let ratioChangeEvent: CustomEvent | null = null;
-      el.addEventListener('ratio-change', ((e: CustomEvent) => {
-        ratioChangeEvent = e;
-      }) as EventListener);
-
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
       const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
@@ -538,15 +527,14 @@ describe('IframeGrid', () => {
       // Simulate mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 150 }));
 
-      expect(ratioChangeEvent).to.not.be.null;
-      expect(ratioChangeEvent!.detail.orientation).to.equal('horizontal');
-      expect(ratioChangeEvent!.detail.index).to.equal(0);
-      expect(ratioChangeEvent!.detail.rowRatios).to.be.an('array');
+      // Grid container style should be updated directly
+      const container = el.shadowRoot!.querySelector('.grid-container') as HTMLElement;
+      expect(container.style.gridTemplateRows).to.not.be.empty;
 
       el.clearDragState();
     });
 
-    it('adjusts adjacent column ratios based on delta for vertical drag', async () => {
+    it('adjusts adjacent column ratios based on delta for vertical drag on mouseup', async () => {
       const testIframes: IframeConfig[] = [
         { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
         { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
@@ -558,11 +546,6 @@ describe('IframeGrid', () => {
         rowRatios: [1],
       };
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
-
-      let ratioChangeEvent: CustomEvent | null = null;
-      el.addEventListener('ratio-change', ((e: CustomEvent) => {
-        ratioChangeEvent = e;
-      }) as EventListener);
 
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
@@ -572,15 +555,15 @@ describe('IframeGrid', () => {
       // Simulate mousemove to the right (positive delta)
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
 
-      // First column should increase, second should decrease
-      const newColumnRatios = ratioChangeEvent!.detail.columnRatios;
-      expect(newColumnRatios[0]).to.be.greaterThan(1);
-      expect(newColumnRatios[1]).to.be.lessThan(1);
+      // End drag to commit ratios
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 50 }));
 
-      el.clearDragState();
+      // First column should increase, second should decrease
+      expect(el.grid.columnRatios[0]).to.be.greaterThan(1);
+      expect(el.grid.columnRatios[1]).to.be.lessThan(1);
     });
 
-    it('adjusts adjacent row ratios based on delta for horizontal drag', async () => {
+    it('adjusts adjacent row ratios based on delta for horizontal drag on mouseup', async () => {
       const testIframes: IframeConfig[] = [
         { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
         { id: '2', url: 'https://example.com/2', position: { row: 1, col: 0 } },
@@ -593,11 +576,6 @@ describe('IframeGrid', () => {
       };
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
-      let ratioChangeEvent: CustomEvent | null = null;
-      el.addEventListener('ratio-change', ((e: CustomEvent) => {
-        ratioChangeEvent = e;
-      }) as EventListener);
-
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="horizontal"]') as HTMLElement;
       const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
@@ -606,15 +584,15 @@ describe('IframeGrid', () => {
       // Simulate mousemove downward (positive delta)
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 150 }));
 
-      // First row should increase, second should decrease
-      const newRowRatios = ratioChangeEvent!.detail.rowRatios;
-      expect(newRowRatios[0]).to.be.greaterThan(1);
-      expect(newRowRatios[1]).to.be.lessThan(1);
+      // End drag to commit ratios
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 50, clientY: 150 }));
 
-      el.clearDragState();
+      // First row should increase, second should decrease
+      expect(el.grid.rowRatios[0]).to.be.greaterThan(1);
+      expect(el.grid.rowRatios[1]).to.be.lessThan(1);
     });
 
-    it('enforces minimum ratio of 0.1 to prevent panels from disappearing', async () => {
+    it('enforces minimum ratio to prevent panels from disappearing', async () => {
       const testIframes: IframeConfig[] = [
         { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
         { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
@@ -627,11 +605,6 @@ describe('IframeGrid', () => {
       };
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
-      let ratioChangeEvent: CustomEvent | null = null;
-      el.addEventListener('ratio-change', ((e: CustomEvent) => {
-        ratioChangeEvent = e;
-      }) as EventListener);
-
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
@@ -640,11 +613,11 @@ describe('IframeGrid', () => {
       // Simulate extreme mousemove that would make second column negative
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 10000, clientY: 50 }));
 
-      const newColumnRatios = ratioChangeEvent!.detail.columnRatios;
-      // Second column should be clamped to minimum 0.1
-      expect(newColumnRatios[1]).to.be.at.least(0.1);
+      // End drag to commit ratios
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 10000, clientY: 50 }));
 
-      el.clearDragState();
+      // Second column should be clamped to minimum
+      expect(el.grid.columnRatios[1]).to.be.at.least(0.1);
     });
 
     it('removes mousemove listener on clearDragState', async () => {
@@ -687,7 +660,7 @@ describe('IframeGrid', () => {
       expect(ratioChangeEvent).to.be.null;
     });
 
-    it('tracks movement smoothly without jitter on multiple mousemove events', async () => {
+    it('tracks movement smoothly by updating DOM directly on multiple mousemove events', async () => {
       const testIframes: IframeConfig[] = [
         { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
         { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
@@ -700,38 +673,38 @@ describe('IframeGrid', () => {
       };
       const el = await fixture<IframeGrid>(html`<iframe-grid .iframes=${testIframes} .grid=${customGrid}></iframe-grid>`);
 
-      const events: CustomEvent[] = [];
-      el.addEventListener('ratio-change', ((e: CustomEvent) => {
-        events.push(e);
-      }) as EventListener);
-
       // Start drag
       const divider = el.shadowRoot!.querySelector('grid-divider[orientation="vertical"]') as HTMLElement;
       const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
       hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
+      const container = el.shadowRoot!.querySelector('.grid-container') as HTMLElement;
+
       // Simulate multiple mousemove events
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 110, clientY: 50 }));
+      const style1 = container.style.gridTemplateColumns;
+
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 120, clientY: 50 }));
+      const style2 = container.style.gridTemplateColumns;
+
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 130, clientY: 50 }));
+      const style3 = container.style.gridTemplateColumns;
 
-      // Should receive multiple events, each building on the same initial ratios
-      expect(events.length).to.equal(3);
+      // DOM should be updated on each move
+      expect(style1).to.not.be.empty;
+      expect(style2).to.not.be.empty;
+      expect(style3).to.not.be.empty;
 
-      // Values should be increasing consistently
-      const ratio0_1 = events[0].detail.columnRatios[0];
-      const ratio0_2 = events[1].detail.columnRatios[0];
-      const ratio0_3 = events[2].detail.columnRatios[0];
-
-      expect(ratio0_2).to.be.greaterThan(ratio0_1);
-      expect(ratio0_3).to.be.greaterThan(ratio0_2);
+      // Styles should be different as position changes
+      expect(style2).to.not.equal(style1);
+      expect(style3).to.not.equal(style2);
 
       el.clearDragState();
     });
   });
 
   describe('CSS grid template update on drag', () => {
-    it('updates columnRatios in grid property on vertical divider drag', async () => {
+    it('updates columnRatios in grid property on vertical divider drag completion', async () => {
       const testIframes: IframeConfig[] = [
         { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
         { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
@@ -752,14 +725,15 @@ describe('IframeGrid', () => {
       // Simulate mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
 
-      // Grid property should be updated
+      // End drag to commit ratios to grid property
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 50 }));
+
+      // Grid property should be updated after drag ends
       expect(el.grid.columnRatios[0]).to.be.greaterThan(1);
       expect(el.grid.columnRatios[1]).to.be.lessThan(1);
-
-      el.clearDragState();
     });
 
-    it('updates rowRatios in grid property on horizontal divider drag', async () => {
+    it('updates rowRatios in grid property on horizontal divider drag completion', async () => {
       const testIframes: IframeConfig[] = [
         { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
         { id: '2', url: 'https://example.com/2', position: { row: 1, col: 0 } },
@@ -780,11 +754,12 @@ describe('IframeGrid', () => {
       // Simulate mousemove
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 150 }));
 
-      // Grid property should be updated
+      // End drag to commit ratios to grid property
+      document.dispatchEvent(new MouseEvent('mouseup', { clientX: 50, clientY: 150 }));
+
+      // Grid property should be updated after drag ends
       expect(el.grid.rowRatios[0]).to.be.greaterThan(1);
       expect(el.grid.rowRatios[1]).to.be.lessThan(1);
-
-      el.clearDragState();
     });
 
     it('updates CSS grid-template-columns in real-time during drag', async () => {
@@ -885,12 +860,13 @@ describe('IframeGrid', () => {
       // Wait for Lit to update
       await el.updateComplete;
 
-      // Verify iframe panels exist and grid template was updated
+      // Verify iframe panels exist
       const panels = el.shadowRoot!.querySelectorAll('iframe-panel');
       expect(panels.length).to.equal(2);
 
-      // Verify grid ratios were updated (first should be larger)
-      expect(el.grid.columnRatios[0]).to.be.greaterThan(el.grid.columnRatios[1]);
+      // Verify DOM style was updated directly during drag
+      const container = el.shadowRoot!.querySelector('.grid-container') as HTMLElement;
+      expect(container.style.gridTemplateColumns).to.not.be.empty;
 
       el.clearDragState();
     });
@@ -1048,7 +1024,7 @@ describe('IframeGrid', () => {
       expect(dragCompleteEvent!.detail.rowRatios).to.deep.equal(el.grid.rowRatios);
     });
 
-    it('ratios persist after drag ends', async () => {
+    it('ratios are committed to grid property after drag ends', async () => {
       const testIframes: IframeConfig[] = [
         { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
         { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
@@ -1066,17 +1042,18 @@ describe('IframeGrid', () => {
       const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
       hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
-      // Move to change ratios
+      // Move to change ratios (ratios not yet committed to grid property)
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
 
-      // Capture ratios before mouseup
-      const ratiosBefore = [...el.grid.columnRatios];
+      // Grid property should still have original ratios during drag
+      expect(el.grid.columnRatios).to.deep.equal([1, 1]);
 
-      // End drag
+      // End drag - ratios should now be committed
       document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 50 }));
 
-      // Ratios should persist after drag ends
-      expect(el.grid.columnRatios).to.deep.equal(ratiosBefore);
+      // Ratios should now be updated in grid property
+      expect(el.grid.columnRatios[0]).to.be.greaterThan(1);
+      expect(el.grid.columnRatios[1]).to.be.lessThan(1);
     });
 
     it('does not dispatch grid-drag-complete when no drag is active', async () => {
@@ -1114,7 +1091,6 @@ describe('IframeGrid', () => {
 
       const events: string[] = [];
       el.addEventListener('grid-drag-start', () => events.push('start'));
-      el.addEventListener('ratio-change', () => events.push('change'));
       el.addEventListener('grid-drag-complete', () => events.push('complete'));
 
       // Start drag
@@ -1122,14 +1098,14 @@ describe('IframeGrid', () => {
       const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
       hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
-      // Move
+      // Move (no ratio-change event - DOM is updated directly)
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
 
       // End drag
       document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 50 }));
 
-      // Verify event sequence
-      expect(events).to.deep.equal(['start', 'change', 'complete']);
+      // Verify event sequence (no 'change' events during drag)
+      expect(events).to.deep.equal(['start', 'complete']);
 
       // Verify all state is cleaned up
       expect(el.getDragState()).to.be.null;
@@ -1263,7 +1239,7 @@ describe('IframeGrid', () => {
       el.clearDragState();
     });
 
-    it('handles mouse leaving viewport during drag by ending drag', async () => {
+    it('handles mouse leaving viewport during drag by ending drag and committing ratios', async () => {
       const testIframes: IframeConfig[] = [
         { id: '1', url: 'https://example.com/1', position: { row: 0, col: 0 } },
         { id: '2', url: 'https://example.com/2', position: { row: 0, col: 1 } },
@@ -1286,21 +1262,19 @@ describe('IframeGrid', () => {
       const hitArea = divider.shadowRoot!.querySelector('.divider-hit-area') as HTMLElement;
       hitArea.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 50 }));
 
-      // Move to change ratios
+      // Move to change ratios (ratios not yet in grid property)
       document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 50 }));
 
-      // Capture ratios before mouseleave
-      const ratiosBefore = [...el.grid.columnRatios];
-
-      // Simulate mouse leaving viewport
+      // Simulate mouse leaving viewport - should commit ratios
       document.documentElement.dispatchEvent(new MouseEvent('mouseleave', { clientX: -10, clientY: 50 }));
 
       // Drag should be ended
       expect(el.getDragState()).to.be.null;
       expect(dragCompleteEvent).to.not.be.null;
 
-      // Ratios should persist
-      expect(el.grid.columnRatios).to.deep.equal(ratiosBefore);
+      // Ratios should now be committed to grid property
+      expect(el.grid.columnRatios[0]).to.be.greaterThan(1);
+      expect(el.grid.columnRatios[1]).to.be.lessThan(1);
     });
 
     it('removes mouseleave listener on clearDragState', async () => {

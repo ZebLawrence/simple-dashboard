@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Simple Dashboard', () => {
+test.describe('Dashboard', () => {
   test('has correct title', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveTitle('Simple Dashboard');
@@ -10,12 +10,6 @@ test.describe('Simple Dashboard', () => {
     await page.goto('/');
     const dashboardApp = page.locator('dashboard-app');
     await expect(dashboardApp).toBeVisible();
-  });
-
-  test('dashboard-app displays header', async ({ page }) => {
-    await page.goto('/');
-    const dashboardApp = page.locator('dashboard-app');
-    await expect(dashboardApp).toContainText('Simple Dashboard');
   });
 });
 
@@ -174,8 +168,8 @@ test.describe('Removing Iframe', () => {
     await expect(iframePanel).toBeVisible();
     await expect(iframePanel).toHaveCount(1);
 
-    // Step 2: Hover over iframe panel to reveal toolbar
-    await iframePanel.hover();
+    // Step 2: Hover over top of iframe panel to reveal toolbar (trigger zone is 10px from top)
+    await iframePanel.hover({ position: { x: 50, y: 5 } });
 
     // Step 3: Click close button in toolbar
     const closeButton = iframePanel.locator('.close-button');
@@ -213,9 +207,9 @@ test.describe('Removing Iframe', () => {
     const iframePanels = iframeGrid.locator('iframe-panel');
     await expect(iframePanels).toHaveCount(2);
 
-    // Remove the first iframe
+    // Remove the first iframe - hover at top to reveal toolbar
     const firstPanel = iframePanels.first();
-    await firstPanel.hover();
+    await firstPanel.hover({ position: { x: 50, y: 5 } });
     const closeButton = firstPanel.locator('.close-button');
     await closeButton.click();
 
@@ -243,8 +237,8 @@ test.describe('Removing Iframe', () => {
     const iframePanel = iframeGrid.locator('iframe-panel');
     await expect(iframePanel).toHaveCount(1);
 
-    // Remove the iframe
-    await iframePanel.hover();
+    // Remove the iframe - hover at top to reveal toolbar
+    await iframePanel.hover({ position: { x: 50, y: 5 } });
     await iframePanel.locator('.close-button').click();
 
     // Verify grid is empty
@@ -678,8 +672,8 @@ test.describe('Persistence', () => {
     const iframePanel = iframeGrid.locator('iframe-panel');
     await expect(iframePanel).toHaveCount(1);
 
-    // Remove the iframe
-    await iframePanel.hover();
+    // Remove the iframe - hover at top to reveal toolbar
+    await iframePanel.hover({ position: { x: 50, y: 5 } });
     await iframePanel.locator('.close-button').click();
     await expect(iframePanel).toHaveCount(0);
 
@@ -723,8 +717,8 @@ test.describe('Fullscreen Mode', () => {
     const iframePanel = iframeGrid.locator('iframe-panel');
     await expect(iframePanel).toBeVisible();
 
-    // Step 2: Hover to reveal toolbar and click fullscreen button
-    await iframePanel.hover();
+    // Step 2: Hover at top to reveal toolbar and click fullscreen button
+    await iframePanel.hover({ position: { x: 50, y: 5 } });
     const fullscreenButton = iframePanel.locator('.fullscreen-button');
     await expect(fullscreenButton).toBeVisible();
     await fullscreenButton.click();
@@ -756,8 +750,8 @@ test.describe('Fullscreen Mode', () => {
     const iframePanel = iframeGrid.locator('iframe-panel');
     await expect(iframePanel).toBeVisible();
 
-    // Enter fullscreen mode
-    await iframePanel.hover();
+    // Enter fullscreen mode - hover at top to reveal toolbar
+    await iframePanel.hover({ position: { x: 50, y: 5 } });
     await iframePanel.locator('.fullscreen-button').click();
 
     // Verify fullscreen overlay is visible
@@ -789,8 +783,8 @@ test.describe('Fullscreen Mode', () => {
     const iframePanel = iframeGrid.locator('iframe-panel');
     await expect(iframePanel).toBeVisible();
 
-    // Enter fullscreen mode
-    await iframePanel.hover();
+    // Enter fullscreen mode - hover at top to reveal toolbar
+    await iframePanel.hover({ position: { x: 50, y: 5 } });
     await iframePanel.locator('.fullscreen-button').click();
 
     // Verify fullscreen overlay is visible
@@ -820,8 +814,8 @@ test.describe('Fullscreen Mode', () => {
     const iframeGrid = dashboardApp.locator('iframe-grid');
     const iframePanel = iframeGrid.locator('iframe-panel');
 
-    // Enter fullscreen mode
-    await iframePanel.hover();
+    // Enter fullscreen mode - hover at top to reveal toolbar
+    await iframePanel.hover({ position: { x: 50, y: 5 } });
     await iframePanel.locator('.fullscreen-button').click();
 
     const fullscreenOverlay = iframePanel.locator('.fullscreen-overlay');

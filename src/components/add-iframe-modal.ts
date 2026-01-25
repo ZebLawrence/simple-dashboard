@@ -81,13 +81,13 @@ export class AddIframeModal extends LitElement {
     }
 
     .modal {
-      background-color: #1a1a2e;
+      background-color: #1c1b1a;
       border-radius: 8px;
       padding: 24px;
       min-width: 400px;
       max-width: 90%;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-      border: 1px solid #0f3460;
+      border: 1px solid #3d3937;
       animation: modal-slide-in 0.25s ease-out;
     }
 
@@ -113,7 +113,7 @@ export class AddIframeModal extends LitElement {
 
     .modal-header {
       margin: 0 0 20px 0;
-      color: #eaeaea;
+      color: #eae8e6;
       font-size: 20px;
       font-weight: 500;
     }
@@ -124,7 +124,7 @@ export class AddIframeModal extends LitElement {
 
     label {
       display: block;
-      color: #a0a0a0;
+      color: #a8a29e;
       font-size: 14px;
       margin-bottom: 8px;
     }
@@ -132,32 +132,32 @@ export class AddIframeModal extends LitElement {
     input {
       width: 100%;
       padding: 12px;
-      border: 1px solid #0f3460;
+      border: 1px solid #3d3937;
       border-radius: 4px;
-      background-color: #16213e;
-      color: #eaeaea;
+      background-color: #2a2826;
+      color: #eae8e6;
       font-size: 14px;
       box-sizing: border-box;
     }
 
     input:focus {
       outline: none;
-      border-color: #4a90d9;
-      box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.2);
+      border-color: #c9a87c;
+      box-shadow: 0 0 0 2px rgba(201, 168, 124, 0.2);
     }
 
     input.error {
-      border-color: #e94560;
-      box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.2);
+      border-color: #e07850;
+      box-shadow: 0 0 0 2px rgba(224, 120, 80, 0.2);
     }
 
     input.error:focus {
-      border-color: #e94560;
-      box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.2);
+      border-color: #e07850;
+      box-shadow: 0 0 0 2px rgba(224, 120, 80, 0.2);
     }
 
     .error-message {
-      color: #e94560;
+      color: #e07850;
       font-size: 12px;
       margin-top: 4px;
       display: none;
@@ -192,32 +192,32 @@ export class AddIframeModal extends LitElement {
 
     .cancel-button {
       background-color: transparent;
-      border: 1px solid #0f3460;
-      color: #a0a0a0;
+      border: 1px solid #3d3937;
+      color: #a8a29e;
     }
 
     .cancel-button:hover {
-      background-color: #0f3460;
-      color: #eaeaea;
+      background-color: #3d3937;
+      color: #eae8e6;
     }
 
     .cancel-button:focus {
-      outline: 2px solid #4a90d9;
+      outline: 2px solid #c9a87c;
       outline-offset: 2px;
     }
 
     .add-button {
-      background-color: #e94560;
+      background-color: #e07850;
       border: none;
-      color: #eaeaea;
+      color: #eae8e6;
     }
 
     .add-button:hover {
-      background-color: #ff6b6b;
+      background-color: #f08a62;
     }
 
     .add-button:focus {
-      outline: 2px solid #4a90d9;
+      outline: 2px solid #c9a87c;
       outline-offset: 2px;
     }
   `;

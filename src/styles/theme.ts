@@ -1,34 +1,34 @@
 import { css, unsafeCSS } from 'lit';
 
 /**
- * Dark theme color palette for the dashboard
+ * Warm dark grey theme color palette for the dashboard
  *
  * Colors:
- * - Background: #1a1a2e (primary dark background)
- * - Surface: #16213e (cards, panels, elevated surfaces)
- * - Border: #0f3460 (borders, dividers, subtle separators)
- * - Accent: #e94560 (primary accent - buttons, highlights, branding)
- * - Accent hover: #ff6b6b (accent on hover)
- * - Accent active: #c73e54 (accent when pressed)
- * - Text primary: #eaeaea (main text color)
- * - Text secondary: #e0e0e0 (slightly dimmer text)
- * - Text muted: #9ca3af (subdued text, placeholders)
- * - Text label: #a0a0a0 (form labels, secondary info)
- * - Focus: #4a90d9 (focus rings, interactive highlights)
+ * - Background: #1c1b1a (primary dark warm grey)
+ * - Surface: #2a2826 (cards, panels, elevated surfaces)
+ * - Border: #3d3937 (borders, dividers, subtle separators)
+ * - Accent: #e07850 (warm coral - buttons, highlights, branding)
+ * - Accent hover: #f08a62 (accent on hover)
+ * - Accent active: #c66840 (accent when pressed)
+ * - Text primary: #eae8e6 (main text color - warm white)
+ * - Text secondary: #d8d4d0 (slightly dimmer text)
+ * - Text muted: #9a9590 (subdued text, placeholders)
+ * - Text label: #a8a29e (form labels, secondary info)
+ * - Focus: #c9a87c (warm amber focus rings)
  */
 
 export const themeColors = {
-  background: '#1a1a2e',
-  surface: '#16213e',
-  border: '#0f3460',
-  accent: '#e94560',
-  accentHover: '#ff6b6b',
-  accentActive: '#c73e54',
-  textPrimary: '#eaeaea',
-  textSecondary: '#e0e0e0',
-  textMuted: '#9ca3af',
-  textLabel: '#a0a0a0',
-  focus: '#4a90d9',
+  background: '#1c1b1a',
+  surface: '#2a2826',
+  border: '#3d3937',
+  accent: '#e07850',
+  accentHover: '#f08a62',
+  accentActive: '#c66840',
+  textPrimary: '#eae8e6',
+  textSecondary: '#d8d4d0',
+  textMuted: '#9a9590',
+  textLabel: '#a8a29e',
+  focus: '#c9a87c',
 } as const;
 
 /**

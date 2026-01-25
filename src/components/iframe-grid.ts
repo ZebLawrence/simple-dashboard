@@ -34,6 +34,10 @@ export class IframeGrid extends LitElement {
   @state()
   private dragState: DragState | null = null;
 
+  // Working ratios used during drag - not reactive to avoid re-renders
+  private workingColumnRatios: number[] = [];
+  private workingRowRatios: number[] = [];
+
   static override styles = css`
     :host {
       display: block;
@@ -46,7 +50,7 @@ export class IframeGrid extends LitElement {
       width: 100%;
       height: 100%;
       gap: 0;
-      background-color: #1a1a2e;
+      background-color: #1c1b1a;
     }
 
     grid-divider[orientation='vertical'] {
@@ -211,6 +215,10 @@ export class IframeGrid extends LitElement {
   private handleDragStart(event: CustomEvent) {
     const { orientation, index, startX, startY } = event.detail;
 
+    // Initialize working ratios from current grid state
+    this.workingColumnRatios = [...this.grid.columnRatios];
+    this.workingRowRatios = [...this.grid.rowRatios];
+
     this.dragState = {
       active: true,
       orientation,
@@ -260,7 +268,7 @@ export class IframeGrid extends LitElement {
       this.dragState;
 
     // Get the grid container dimensions
-    const container = this.shadowRoot?.querySelector('.grid-container');
+    const container = this.shadowRoot?.querySelector('.grid-container') as HTMLElement;
     if (!container) return;
 
     const rect = container.getBoundingClientRect();
@@ -280,7 +288,6 @@ export class IframeGrid extends LitElement {
       const ratioDelta = deltaX * ratioPerPixel;
 
       // Calculate new ratios for the two adjacent columns
-      const newColumnRatios = [...initialColumnRatios];
       let newRatio1 = initialColumnRatios[index] + ratioDelta;
       let newRatio2 = initialColumnRatios[index + 1] - ratioDelta;
 
@@ -296,27 +303,12 @@ export class IframeGrid extends LitElement {
         newRatio1 = initialColumnRatios[index] + initialColumnRatios[index + 1] - minRatio;
       }
 
-      newColumnRatios[index] = newRatio1;
-      newColumnRatios[index + 1] = newRatio2;
+      // Update working ratios (non-reactive)
+      this.workingColumnRatios[index] = newRatio1;
+      this.workingColumnRatios[index + 1] = newRatio2;
 
-      // Update the grid property to trigger re-render with new CSS grid template
-      this.grid = {
-        ...this.grid,
-        columnRatios: newColumnRatios,
-      };
-
-      this.dispatchEvent(
-        new CustomEvent('ratio-change', {
-          bubbles: true,
-          composed: true,
-          detail: {
-            orientation,
-            index,
-            columnRatios: newColumnRatios,
-            rowRatios: this.grid.rowRatios,
-          },
-        })
-      );
+      // Directly update DOM style instead of triggering Lit re-render
+      container.style.gridTemplateColumns = this.buildGridTemplateColumns(this.workingColumnRatios);
     } else {
       // Horizontal divider - affects row ratios
       const deltaY = event.clientY - startY;
@@ -332,7 +324,6 @@ export class IframeGrid extends LitElement {
       const ratioDelta = deltaY * ratioPerPixel;
 
       // Calculate new ratios for the two adjacent rows
-      const newRowRatios = [...initialRowRatios];
       let newRatio1 = initialRowRatios[index] + ratioDelta;
       let newRatio2 = initialRowRatios[index + 1] - ratioDelta;
 
@@ -348,34 +339,50 @@ export class IframeGrid extends LitElement {
         newRatio1 = initialRowRatios[index] + initialRowRatios[index + 1] - minRatio;
       }
 
-      newRowRatios[index] = newRatio1;
-      newRowRatios[index + 1] = newRatio2;
+      // Update working ratios (non-reactive)
+      this.workingRowRatios[index] = newRatio1;
+      this.workingRowRatios[index + 1] = newRatio2;
 
-      // Update the grid property to trigger re-render with new CSS grid template
-      this.grid = {
-        ...this.grid,
-        rowRatios: newRowRatios,
-      };
-
-      this.dispatchEvent(
-        new CustomEvent('ratio-change', {
-          bubbles: true,
-          composed: true,
-          detail: {
-            orientation,
-            index,
-            columnRatios: this.grid.columnRatios,
-            rowRatios: newRowRatios,
-          },
-        })
-      );
+      // Directly update DOM style instead of triggering Lit re-render
+      container.style.gridTemplateRows = this.buildGridTemplateRows(this.workingRowRatios);
     }
+  }
+
+  // Helper to build grid-template-columns string from ratios
+  private buildGridTemplateColumns(ratios: number[]): string {
+    return ratios
+      .map((ratio, i) => {
+        if (i < ratios.length - 1) {
+          return `${ratio}fr ${DIVIDER_SIZE}px`;
+        }
+        return `${ratio}fr`;
+      })
+      .join(' ');
+  }
+
+  // Helper to build grid-template-rows string from ratios
+  private buildGridTemplateRows(ratios: number[]): string {
+    return ratios
+      .map((ratio, i) => {
+        if (i < ratios.length - 1) {
+          return `${ratio}fr ${DIVIDER_SIZE}px`;
+        }
+        return `${ratio}fr`;
+      })
+      .join(' ');
   }
 
   private handleMouseUp(_event: MouseEvent) {
     if (!this.dragState || !this.dragState.active) {
       return;
     }
+
+    // Commit working ratios to Lit state (triggers re-render to sync state)
+    this.grid = {
+      ...this.grid,
+      columnRatios: [...this.workingColumnRatios],
+      rowRatios: [...this.workingRowRatios],
+    };
 
     // Dispatch drag-complete event with final ratios
     this.dispatchEvent(
@@ -385,8 +392,8 @@ export class IframeGrid extends LitElement {
         detail: {
           orientation: this.dragState.orientation,
           index: this.dragState.index,
-          columnRatios: [...this.grid.columnRatios],
-          rowRatios: [...this.grid.rowRatios],
+          columnRatios: [...this.workingColumnRatios],
+          rowRatios: [...this.workingRowRatios],
         },
       })
     );
@@ -421,6 +428,13 @@ export class IframeGrid extends LitElement {
       return;
     }
 
+    // Commit working ratios to Lit state
+    this.grid = {
+      ...this.grid,
+      columnRatios: [...this.workingColumnRatios],
+      rowRatios: [...this.workingRowRatios],
+    };
+
     // End the drag when mouse leaves the viewport, preserving current ratios
     this.dispatchEvent(
       new CustomEvent('grid-drag-complete', {
@@ -429,8 +443,8 @@ export class IframeGrid extends LitElement {
         detail: {
           orientation: this.dragState.orientation,
           index: this.dragState.index,
-          columnRatios: [...this.grid.columnRatios],
-          rowRatios: [...this.grid.rowRatios],
+          columnRatios: [...this.workingColumnRatios],
+          rowRatios: [...this.workingRowRatios],
         },
       })
     );

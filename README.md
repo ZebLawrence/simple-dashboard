@@ -2,6 +2,15 @@
 
 A client-side iframe dashboard workspace built with Lit web components. Manage multiple website iframes in a resizable grid layout with persistent state.
 
+<!-- TODO: Add screenshot or GIF showing the grid layout in action -->
+
+*Arrange multiple websites in a resizable grid — perfect for monitoring dashboards, documentation, or multi-tasking.*
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) 18+
+- [pnpm](https://pnpm.io/) (or npm/yarn)
+
 ## Features
 
 - 🖼️ **Multi-iframe grid** - Display multiple websites side by side
@@ -29,6 +38,8 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 2. Enter a URL (must include `https://`)
 3. Drag the dividers between panels to resize
 4. Your layout is automatically saved
+
+> **Note:** URLs must use HTTPS. Many sites block embedding via `X-Frame-Options` or CSP headers — if a site doesn't load, it's likely blocking iframe embedding for security reasons.
 
 ### URL Presets
 

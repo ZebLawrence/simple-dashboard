@@ -2,8 +2,6 @@
 
 A client-side iframe dashboard workspace built with Lit web components. Manage multiple website iframes in a resizable grid layout with persistent state.
 
-<!-- TODO: Add screenshot or GIF showing the grid layout in action -->
-
 *Arrange multiple websites in a resizable grid — perfect for monitoring dashboards, documentation, or multi-tasking.*
 
 ## Prerequisites

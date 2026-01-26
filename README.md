@@ -26,6 +26,10 @@ pnpm install
 
 # Start development server
 pnpm dev
+
+# Or, if using npm/yarn:
+# npm install && npm run dev
+# yarn && yarn dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.

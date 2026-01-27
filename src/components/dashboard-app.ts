@@ -6,6 +6,8 @@ import { applyGlobalTheme, themeColors } from '../styles/theme.js';
 import './iframe-grid.js';
 import './add-iframe-button.js';
 import './add-iframe-modal.js';
+import './refresh-all-button.js';
+import type { IframeGrid } from './iframe-grid.js';
 
 // Apply global theme styles to document
 applyGlobalTheme();
@@ -63,6 +65,7 @@ export class DashboardApp extends LitElement {
             @grid-drag-complete=${this._handleGridDragComplete}
           ></iframe-grid>
         </main>
+        <refresh-all-button @refresh-all-click=${this._handleRefreshAllClick}></refresh-all-button>
         <add-iframe-button @add-iframe-click=${this._handleAddIframeClick}></add-iframe-button>
         <add-iframe-modal
           .open=${this.modalOpen}
@@ -77,6 +80,11 @@ export class DashboardApp extends LitElement {
 
   private _handleAddIframeClick() {
     this.modalOpen = true;
+  }
+
+  private _handleRefreshAllClick() {
+    const grid = this.shadowRoot?.querySelector('iframe-grid') as IframeGrid | null;
+    grid?.refreshAll();
   }
 
   private _handleModalClose() {

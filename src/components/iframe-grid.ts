@@ -468,6 +468,16 @@ export class IframeGrid extends LitElement {
     this.removeMouseLeaveListener();
     this.dragState = null;
   }
+
+  /**
+   * Refresh all iframe panels in the grid
+   */
+  refreshAll() {
+    const panels = this.shadowRoot?.querySelectorAll('iframe-panel');
+    panels?.forEach(panel => {
+      (panel as import('./iframe-panel.js').IframePanel).refresh();
+    });
+  }
 }
 
 declare global {

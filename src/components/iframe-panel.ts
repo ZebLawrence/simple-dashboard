@@ -320,8 +320,10 @@ export class IframePanel extends LitElement {
     return this._isFullscreen;
   }
 
-  private _handleRefreshClick(e: Event) {
-    e.stopPropagation();
+  /**
+   * Public method to refresh this iframe panel
+   */
+  public refresh() {
     this._isRefreshing = true;
     const iframe = this.shadowRoot?.querySelector('iframe');
     if (iframe) {
@@ -331,6 +333,11 @@ export class IframePanel extends LitElement {
       url.searchParams.set('_refresh', Date.now().toString());
       iframe.src = url.toString();
     }
+  }
+
+  private _handleRefreshClick(e: Event) {
+    e.stopPropagation();
+    this.refresh();
   }
 
   private _handleIframeLoad() {

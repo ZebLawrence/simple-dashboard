@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { IframeConfig, GridConfig } from '../types/index.js';
 import './iframe-panel.js';
+import type { IframePanel } from './iframe-panel.js';
 import './grid-divider.js';
 import type { GridDivider, DividerOrientation } from './grid-divider.js';
 
@@ -475,7 +476,7 @@ export class IframeGrid extends LitElement {
   refreshAll() {
     const panels = this.shadowRoot?.querySelectorAll('iframe-panel');
     panels?.forEach(panel => {
-      (panel as import('./iframe-panel.js').IframePanel).refresh();
+      (panel as IframePanel).refresh();
     });
   }
 }

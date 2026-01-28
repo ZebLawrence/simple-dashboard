@@ -6,6 +6,8 @@ export interface IframeConfig {
   id: string;
   /** URL to load in the iframe */
   url: string;
+  /** Optional custom label for the iframe (defaults to URL if not set) */
+  label?: string;
   /** Grid position of the iframe */
   position: {
     /** Row index (0-based) */

@@ -62,6 +62,7 @@ export class DashboardApp extends LitElement {
             .grid=${this.grid}
             @remove-iframe=${this._handleRemoveIframe}
             @url-changed=${this._handleUrlChanged}
+            @label-changed=${this._handleLabelChanged}
             @grid-drag-complete=${this._handleGridDragComplete}
           ></iframe-grid>
         </main>
@@ -69,7 +70,9 @@ export class DashboardApp extends LitElement {
         <add-iframe-button @add-iframe-click=${this._handleAddIframeClick}></add-iframe-button>
         <add-iframe-modal
           .open=${this.modalOpen}
-          .currentUrls=${this.iframes.map(iframe => iframe.url)}
+          .currentUrls=${this.iframes.map(iframe =>
+            iframe.label ? `${iframe.label}|${iframe.url}` : iframe.url
+          )}
           @modal-close=${this._handleModalClose}
           @add-iframe=${this._handleAddIframe}
           @import-urls=${this._handleImportUrls}
@@ -117,8 +120,8 @@ export class DashboardApp extends LitElement {
     this.saveState();
   }
 
-  private _handleImportUrls(event: CustomEvent<{ urls: string[] }>) {
-    const { urls } = event.detail;
+  private _handleImportUrls(event: CustomEvent<{ urls: string[]; labels?: string[] }>) {
+    const { urls, labels } = event.detail;
 
     // Clear existing iframes and start fresh with imported URLs
     const newIframes: IframeConfig[] = [];
@@ -134,8 +137,9 @@ export class DashboardApp extends LitElement {
         row: Math.floor(index / newColumns),
         col: index % newColumns,
       };
+      const label = labels?.[index] || undefined;
 
-      newIframes.push({ id, url, position });
+      newIframes.push({ id, url, label, position });
     });
 
     // Update state with new iframes and grid
@@ -304,6 +308,18 @@ export class DashboardApp extends LitElement {
     );
 
     // Auto-save after editing iframe URL
+    this.saveState();
+  }
+
+  private _handleLabelChanged(event: CustomEvent<{ id: string; label: string }>) {
+    const { id, label } = event.detail;
+
+    // Update the iframe label in state (empty string means use URL as default)
+    this.iframes = this.iframes.map(iframe =>
+      iframe.id === id ? { ...iframe, label: label || undefined } : iframe
+    );
+
+    // Auto-save after editing iframe label
     this.saveState();
   }
 

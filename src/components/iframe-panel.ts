@@ -9,6 +9,9 @@ export class IframePanel extends LitElement {
   @property({ type: String, attribute: 'iframe-id' })
   iframeId = '';
 
+  @property({ type: String })
+  label = '';
+
   @state()
   private _isHovered = false;
 
@@ -26,6 +29,12 @@ export class IframePanel extends LitElement {
 
   @state()
   private _isFullscreenExiting = false;
+
+  @state()
+  private _isEditingLabel = false;
+
+  @state()
+  private _editLabelValue = '';
 
   static override styles = css`
     :host {
@@ -51,8 +60,9 @@ export class IframePanel extends LitElement {
       right: 0;
       padding: 8px;
       display: flex;
-      justify-content: flex-end;
-      gap: 4px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
       background-color: rgba(42, 40, 38, 0.9);
       opacity: 0;
       transition: opacity 0.2s ease;
@@ -63,6 +73,48 @@ export class IframePanel extends LitElement {
     .toolbar.visible {
       opacity: 1;
       pointer-events: auto;
+    }
+
+    .toolbar-label-container {
+      flex: 1;
+      max-width: 50%;
+      min-width: 0;
+    }
+
+    .toolbar-label {
+      color: #e0e0e0;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.15s ease;
+    }
+
+    .toolbar-label:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .toolbar-label-input {
+      width: 100%;
+      padding: 4px 8px;
+      border: 1px solid #e07850;
+      border-radius: 4px;
+      background-color: #1c1b1a;
+      color: white;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+
+    .toolbar-label-input:focus {
+      outline: none;
+    }
+
+    .toolbar-buttons {
+      display: flex;
+      gap: 4px;
     }
 
     .toolbar-trigger {
@@ -398,6 +450,60 @@ export class IframePanel extends LitElement {
     this._editUrlValue = '';
   }
 
+  private _getDisplayLabel(): string {
+    return this.label || this.url;
+  }
+
+  private _handleLabelClick(e: Event) {
+    e.stopPropagation();
+    this._editLabelValue = this.label || '';
+    this._isEditingLabel = true;
+    this.updateComplete.then(() => {
+      const input = this.shadowRoot?.querySelector('.toolbar-label-input') as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    });
+  }
+
+  private _handleLabelInputChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    this._editLabelValue = input.value;
+  }
+
+  private _handleLabelInputKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      this._submitLabelEdit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      this._cancelLabelEdit();
+    }
+  }
+
+  private _submitLabelEdit() {
+    const newLabel = this._editLabelValue.trim();
+    this._isEditingLabel = false;
+
+    // Only dispatch if label actually changed
+    if (newLabel !== this.label) {
+      this.label = newLabel;
+      this.dispatchEvent(
+        new CustomEvent('label-changed', {
+          bubbles: true,
+          composed: true,
+          detail: { id: this.iframeId, label: newLabel },
+        })
+      );
+    }
+  }
+
+  private _cancelLabelEdit() {
+    this._isEditingLabel = false;
+    this._editLabelValue = '';
+  }
+
   private _handleFullscreenClick(e: Event) {
     e.stopPropagation();
     this._isFullscreen = true;
@@ -435,10 +541,34 @@ export class IframePanel extends LitElement {
           @mouseenter=${this._handleToolbarTriggerEnter}
           @mouseleave=${this._handleToolbarLeave}
         >
-          <button class="toolbar-button edit-button" @click=${this._handleEditClick} title="Edit URL">✎</button>
-          <button class="toolbar-button refresh-button" @click=${this._handleRefreshClick} title="Refresh">↻</button>
-          <button class="toolbar-button fullscreen-button" @click=${this._handleFullscreenClick} title="Fullscreen">⛶</button>
-          <button class="toolbar-button close-button" @click=${this._handleClose} title="Remove iframe">×</button>
+          <div class="toolbar-label-container">
+            ${this._isEditingLabel
+              ? html`
+                  <input
+                    type="text"
+                    class="toolbar-label-input"
+                    .value=${this._editLabelValue}
+                    @input=${this._handleLabelInputChange}
+                    @keydown=${this._handleLabelInputKeydown}
+                    @blur=${this._submitLabelEdit}
+                  />
+                `
+              : html`
+                  <div
+                    class="toolbar-label"
+                    @click=${this._handleLabelClick}
+                    title="${this._getDisplayLabel()}"
+                  >
+                    ${this._getDisplayLabel()}
+                  </div>
+                `}
+          </div>
+          <div class="toolbar-buttons">
+            <button class="toolbar-button edit-button" @click=${this._handleEditClick} title="Edit URL">✎</button>
+            <button class="toolbar-button refresh-button" @click=${this._handleRefreshClick} title="Refresh">↻</button>
+            <button class="toolbar-button fullscreen-button" @click=${this._handleFullscreenClick} title="Fullscreen">⛶</button>
+            <button class="toolbar-button close-button" @click=${this._handleClose} title="Remove iframe">×</button>
+          </div>
         </div>
         ${this._isEditingUrl
           ? html`

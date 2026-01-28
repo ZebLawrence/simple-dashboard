@@ -736,12 +736,24 @@ export class AddIframeModal extends LitElement {
     const preset = storageService.getPreset(presetId);
     if (!preset) return;
 
-    // Dispatch import event with the preset URLs
+    // Parse preset URLs which may contain label|URL format
+    const validUrls: string[] = [];
+    const labels: string[] = [];
+
+    preset.urls.forEach(entry => {
+      const parsed = this._parseLabeledUrl(entry);
+      if (parsed) {
+        validUrls.push(parsed.url);
+        labels.push(parsed.label || '');
+      }
+    });
+
+    // Dispatch import event with the preset URLs and labels
     this.dispatchEvent(
       new CustomEvent('import-urls', {
         bubbles: true,
         composed: true,
-        detail: { urls: preset.urls },
+        detail: { urls: validUrls, labels },
       })
     );
 
@@ -852,6 +864,23 @@ export class AddIframeModal extends LitElement {
     }
   }
 
+  private _parseLabeledUrl(line: string): { url: string; label?: string } | null {
+    // Check if line contains label|URL format
+    const pipeIndex = line.lastIndexOf('|');
+    if (pipeIndex > 0) {
+      const potentialLabel = line.substring(0, pipeIndex).trim();
+      const potentialUrl = line.substring(pipeIndex + 1).trim();
+      if (this._isValidUrl(potentialUrl)) {
+        return { url: potentialUrl, label: potentialLabel || undefined };
+      }
+    }
+    // Try as plain URL
+    if (this._isValidUrl(line)) {
+      return { url: line };
+    }
+    return null;
+  }
+
   private _handleImport() {
     const text = this.importTextarea.value.trim();
 
@@ -860,14 +889,17 @@ export class AddIframeModal extends LitElement {
       return;
     }
 
-    // Parse URLs from textarea (one per line)
+    // Parse URLs from textarea (one per line), supporting label|URL format
     const lines = text.split('\n').map(line => line.trim()).filter(line => line);
     const validUrls: string[] = [];
+    const labels: string[] = [];
     const invalidLines: number[] = [];
 
     lines.forEach((line, index) => {
-      if (this._isValidUrl(line)) {
-        validUrls.push(line);
+      const parsed = this._parseLabeledUrl(line);
+      if (parsed) {
+        validUrls.push(parsed.url);
+        labels.push(parsed.label || '');
       } else {
         invalidLines.push(index + 1);
       }
@@ -878,12 +910,12 @@ export class AddIframeModal extends LitElement {
       return;
     }
 
-    // Dispatch import event with valid URLs
+    // Dispatch import event with valid URLs and labels
     this.dispatchEvent(
       new CustomEvent('import-urls', {
         bubbles: true,
         composed: true,
-        detail: { urls: validUrls },
+        detail: { urls: validUrls, labels },
       })
     );
 

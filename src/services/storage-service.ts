@@ -110,6 +110,11 @@ export class StorageService {
       return false;
     }
 
+    // Label is optional, but if present must be a string
+    if (config.label !== undefined && typeof config.label !== 'string') {
+      return false;
+    }
+
     if (!config.position || typeof config.position !== 'object') {
       return false;
     }

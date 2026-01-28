@@ -335,6 +335,28 @@ export class IframePanel extends LitElement {
     .exit-fullscreen-button:active {
       background-color: #c66840;
     }
+
+    .default-label {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      color: #e0e0e0;
+      font-size: 14px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      pointer-events: none;
+      z-index: 5;
+      opacity: 1;
+      transition: opacity 0.2s ease;
+    }
+
+    .default-label.hidden {
+      opacity: 0;
+    }
   `;
 
   private _handleClose(e: Event) {
@@ -532,6 +554,7 @@ export class IframePanel extends LitElement {
   override render() {
     return html`
       <div class="iframe-container">
+        <div class="default-label ${this._isHovered ? 'hidden' : ''}" aria-hidden="true">${this._getDisplayLabel()}</div>
         <div
           class="toolbar-trigger"
           @mouseenter=${this._handleToolbarTriggerEnter}

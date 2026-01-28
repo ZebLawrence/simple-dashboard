@@ -953,4 +953,100 @@ describe('IframePanel', () => {
       expect(propagated).to.be.false;
     });
   });
+
+  describe('default label display', () => {
+    it('renders a default label element', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const defaultLabel = el.shadowRoot!.querySelector('.default-label');
+      expect(defaultLabel).to.exist;
+    });
+
+    it('default label shows the label text when set', async () => {
+      const testLabel = 'Test Dashboard';
+      const el = await fixture<IframePanel>(html`<iframe-panel label=${testLabel}></iframe-panel>`);
+
+      const defaultLabel = el.shadowRoot!.querySelector('.default-label')!;
+      expect(defaultLabel.textContent).to.equal(testLabel);
+    });
+
+    it('default label shows the URL when label is not set', async () => {
+      const testUrl = 'https://example.com';
+      const el = await fixture<IframePanel>(html`<iframe-panel url=${testUrl}></iframe-panel>`);
+
+      const defaultLabel = el.shadowRoot!.querySelector('.default-label')!;
+      expect(defaultLabel.textContent).to.equal(testUrl);
+    });
+
+    it('default label is visible by default (opacity 1)', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const defaultLabel = el.shadowRoot!.querySelector('.default-label') as HTMLElement;
+      const styles = window.getComputedStyle(defaultLabel);
+      expect(styles.opacity).to.equal('1');
+    });
+
+    it('default label is hidden when toolbar is hovered (opacity 0)', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+      const trigger = el.shadowRoot!.querySelector('.toolbar-trigger')!;
+
+      trigger.dispatchEvent(new MouseEvent('mouseenter'));
+      await el.updateComplete;
+
+      const defaultLabel = el.shadowRoot!.querySelector('.default-label') as HTMLElement;
+      const styles = window.getComputedStyle(defaultLabel);
+      expect(styles.opacity).to.equal('0');
+    });
+
+    it('default label is positioned at the top left', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const defaultLabel = el.shadowRoot!.querySelector('.default-label') as HTMLElement;
+      const styles = window.getComputedStyle(defaultLabel);
+      expect(styles.position).to.equal('absolute');
+      expect(styles.top).to.equal('8px');
+      expect(styles.left).to.equal('8px');
+    });
+
+    it('default label has bold font weight', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const defaultLabel = el.shadowRoot!.querySelector('.default-label') as HTMLElement;
+      const styles = window.getComputedStyle(defaultLabel);
+      expect(styles.fontWeight).to.equal('700');
+    });
+
+    it('default label has text shadow', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const defaultLabel = el.shadowRoot!.querySelector('.default-label') as HTMLElement;
+      const styles = window.getComputedStyle(defaultLabel);
+      expect(styles.textShadow).to.include('rgba(0, 0, 0');
+    });
+
+    it('default label has aria-hidden attribute for accessibility', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const defaultLabel = el.shadowRoot!.querySelector('.default-label') as HTMLElement;
+      expect(defaultLabel.getAttribute('aria-hidden')).to.equal('true');
+    });
+
+    it('default label becomes visible again when toolbar is no longer hovered', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+      const trigger = el.shadowRoot!.querySelector('.toolbar-trigger')!;
+      const toolbar = el.shadowRoot!.querySelector('.toolbar')!;
+
+      // Hover toolbar
+      trigger.dispatchEvent(new MouseEvent('mouseenter'));
+      await el.updateComplete;
+
+      // Unhover toolbar
+      toolbar.dispatchEvent(new MouseEvent('mouseleave'));
+      await el.updateComplete;
+
+      const defaultLabel = el.shadowRoot!.querySelector('.default-label') as HTMLElement;
+      const styles = window.getComputedStyle(defaultLabel);
+      expect(styles.opacity).to.equal('1');
+    });
+  });
 });

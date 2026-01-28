@@ -1024,6 +1024,13 @@ describe('IframePanel', () => {
       expect(styles.textShadow).to.include('rgba(0, 0, 0');
     });
 
+    it('default label has aria-hidden attribute for accessibility', async () => {
+      const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
+
+      const defaultLabel = el.shadowRoot!.querySelector('.default-label') as HTMLElement;
+      expect(defaultLabel.getAttribute('aria-hidden')).to.equal('true');
+    });
+
     it('default label becomes visible again when toolbar is no longer hovered', async () => {
       const el = await fixture<IframePanel>(html`<iframe-panel></iframe-panel>`);
       const trigger = el.shadowRoot!.querySelector('.toolbar-trigger')!;

@@ -554,7 +554,7 @@ export class IframePanel extends LitElement {
   override render() {
     return html`
       <div class="iframe-container">
-        <div class="default-label ${this._isHovered ? 'hidden' : ''}">${this._getDisplayLabel()}</div>
+        <div class="default-label ${this._isHovered ? 'hidden' : ''}" aria-hidden="true">${this._getDisplayLabel()}</div>
         <div
           class="toolbar-trigger"
           @mouseenter=${this._handleToolbarTriggerEnter}

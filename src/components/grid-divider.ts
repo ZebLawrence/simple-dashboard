@@ -86,15 +86,19 @@ export class GridDivider extends LitElement {
     return html`
       <div
         class="divider-hit-area"
-        @mousedown=${this.handleMouseDown}
+        @pointerdown=${this.handlePointerDown}
       >
         <div class="divider"></div>
       </div>
     `;
   }
 
-  private handleMouseDown(event: MouseEvent) {
+  private handlePointerDown(event: PointerEvent) {
     event.preventDefault();
+    
+    // Capture pointer to ensure we continue receiving events even outside the element
+    const hitArea = event.currentTarget as HTMLElement;
+    hitArea.setPointerCapture(event.pointerId);
 
     const dividerEl = this.shadowRoot?.querySelector('.divider');
     dividerEl?.classList.add('dragging');
@@ -108,6 +112,7 @@ export class GridDivider extends LitElement {
           index: this.index,
           startX: event.clientX,
           startY: event.clientY,
+          pointerId: event.pointerId,
         },
       })
     );

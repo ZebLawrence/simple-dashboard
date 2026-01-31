@@ -15,6 +15,7 @@ export interface DragState {
   index: number;
   startX: number;
   startY: number;
+  pointerId: number;
   initialColumnRatios: number[];
   initialRowRatios: number[];
 }
@@ -32,7 +33,7 @@ export class IframeGrid extends LitElement {
     rowRatios: [1, 1],
   };
 
-  @state()
+  // Drag state - NOT decorated with @state() to prevent re-renders during drag
   private dragState: DragState | null = null;
 
   // Working ratios used during drag - not reactive to avoid re-renders
@@ -92,6 +93,22 @@ export class IframeGrid extends LitElement {
       margin: 0;
       max-width: 300px;
       line-height: 1.5;
+    }
+
+    /* Prevent text selection during drag */
+    .grid-container.dragging {
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+    }
+
+    /* Apply cursor during drag */
+    .grid-container.dragging-vertical {
+      cursor: col-resize;
+    }
+
+    .grid-container.dragging-horizontal {
+      cursor: row-resize;
     }
   `;
 
@@ -214,88 +231,76 @@ export class IframeGrid extends LitElement {
   }
 
   private handleDragStart(event: CustomEvent) {
-    const { orientation, index, startX, startY } = event.detail;
+    const { orientation, index, startX, startY, pointerId } = event.detail;
+
+    // Get container early
+    const container = this.shadowRoot?.querySelector('.grid-container') as HTMLElement;
+    if (!container) return;
 
     // Initialize working ratios from current grid state
     this.workingColumnRatios = [...this.grid.columnRatios];
     this.workingRowRatios = [...this.grid.rowRatios];
 
+    // Store drag state (NOT @state, so no re-render)
     this.dragState = {
       active: true,
       orientation,
       index,
       startX,
       startY,
+      pointerId,
       initialColumnRatios: [...this.grid.columnRatios],
       initialRowRatios: [...this.grid.rowRatios],
     };
 
-    // Add document-level mousemove listener for drag tracking
-    this.boundHandleMouseMove = this.handleMouseMove.bind(this);
-    document.addEventListener('mousemove', this.boundHandleMouseMove);
+    // Visual feedback only - no state changes
+    const dividers = this.shadowRoot?.querySelectorAll('grid-divider');
+    dividers?.forEach((divider) => {
+      const dividerEl = divider as GridDivider;
+      if (dividerEl.orientation === orientation && dividerEl.index === index) {
+        dividerEl.setDragging(true);
+      }
+    });
 
-    // Add document-level mouseup listener for drag end
-    this.boundHandleMouseUp = this.handleMouseUp.bind(this);
-    document.addEventListener('mouseup', this.boundHandleMouseUp);
+    container.classList.add('dragging', `dragging-${orientation}`);
+    document.body.style.cursor = orientation === 'vertical' ? 'col-resize' : 'row-resize';
+    document.body.style.userSelect = 'none';
 
-    // Add document-level mouseleave listener to handle mouse leaving viewport
-    this.boundHandleMouseLeave = this.handleMouseLeave.bind(this);
-    document.documentElement.addEventListener('mouseleave', this.boundHandleMouseLeave);
-
-    this.dispatchEvent(
-      new CustomEvent('grid-drag-start', {
-        bubbles: true,
-        composed: true,
-        detail: {
-          orientation,
-          index,
-          initialColumnRatios: this.dragState.initialColumnRatios,
-          initialRowRatios: this.dragState.initialRowRatios,
-        },
-      })
-    );
+    // Attach document-level listeners (critical for tracking pointer outside divider)
+    this.boundHandlePointerMove = this.handlePointerMove.bind(this);
+    this.boundHandlePointerUp = this.handlePointerUp.bind(this);
+    
+    document.addEventListener('pointermove', this.boundHandlePointerMove);
+    document.addEventListener('pointerup', this.boundHandlePointerUp);
+    document.addEventListener('pointercancel', this.boundHandlePointerUp);
   }
 
-  private boundHandleMouseMove: ((event: MouseEvent) => void) | null = null;
-  private boundHandleMouseUp: ((event: MouseEvent) => void) | null = null;
-  private boundHandleMouseLeave: ((event: MouseEvent) => void) | null = null;
+  private boundHandlePointerMove: ((event: PointerEvent) => void) | null = null;
+  private boundHandlePointerUp: ((event: PointerEvent) => void) | null = null;
 
-  private handleMouseMove(event: MouseEvent) {
-    if (!this.dragState || !this.dragState.active) {
-      return;
-    }
+  private handlePointerMove(event: PointerEvent) {
+    if (!this.dragState?.active) return;
+    if (event.pointerId !== this.dragState.pointerId) return;
+    
+    event.preventDefault();
 
-    const { orientation, index, startX, startY, initialColumnRatios, initialRowRatios } =
-      this.dragState;
-
-    // Get the grid container dimensions
+    const { orientation, index, startX, startY, initialColumnRatios, initialRowRatios } = this.dragState;
     const container = this.shadowRoot?.querySelector('.grid-container') as HTMLElement;
     if (!container) return;
 
     const rect = container.getBoundingClientRect();
 
     if (orientation === 'vertical') {
-      // Calculate delta in pixels
       const deltaX = event.clientX - startX;
-
-      // Calculate total content width (excluding divider tracks)
       const numDividers = this.grid.columns - 1;
-      const totalDividerWidth = numDividers * DIVIDER_SIZE;
-      const contentWidth = rect.width - totalDividerWidth;
-
-      // Convert pixel delta to ratio delta
+      const contentWidth = rect.width - (numDividers * DIVIDER_SIZE);
       const totalRatios = initialColumnRatios.reduce((sum, r) => sum + r, 0);
-      const ratioPerPixel = totalRatios / contentWidth;
-      const ratioDelta = deltaX * ratioPerPixel;
+      const ratioDelta = (deltaX / contentWidth) * totalRatios;
 
-      // Calculate new ratios for the two adjacent columns
       let newRatio1 = initialColumnRatios[index] + ratioDelta;
       let newRatio2 = initialColumnRatios[index + 1] - ratioDelta;
 
-      // Calculate minimum ratio based on MIN_PANEL_SIZE_PX
       const minRatio = (MIN_PANEL_SIZE_PX / contentWidth) * totalRatios;
-
-      // Enforce minimum size constraints and ensure ratios stay positive
       if (newRatio1 < minRatio) {
         newRatio1 = minRatio;
         newRatio2 = initialColumnRatios[index] + initialColumnRatios[index + 1] - minRatio;
@@ -304,34 +309,22 @@ export class IframeGrid extends LitElement {
         newRatio1 = initialColumnRatios[index] + initialColumnRatios[index + 1] - minRatio;
       }
 
-      // Update working ratios (non-reactive)
       this.workingColumnRatios[index] = newRatio1;
       this.workingColumnRatios[index + 1] = newRatio2;
 
-      // Directly update DOM style instead of triggering Lit re-render
+      // Direct DOM manipulation - no Lit re-render
       container.style.gridTemplateColumns = this.buildGridTemplateColumns(this.workingColumnRatios);
     } else {
-      // Horizontal divider - affects row ratios
       const deltaY = event.clientY - startY;
-
-      // Calculate total content height (excluding divider tracks)
       const numDividers = this.grid.rows - 1;
-      const totalDividerHeight = numDividers * DIVIDER_SIZE;
-      const contentHeight = rect.height - totalDividerHeight;
-
-      // Convert pixel delta to ratio delta
+      const contentHeight = rect.height - (numDividers * DIVIDER_SIZE);
       const totalRatios = initialRowRatios.reduce((sum, r) => sum + r, 0);
-      const ratioPerPixel = totalRatios / contentHeight;
-      const ratioDelta = deltaY * ratioPerPixel;
+      const ratioDelta = (deltaY / contentHeight) * totalRatios;
 
-      // Calculate new ratios for the two adjacent rows
       let newRatio1 = initialRowRatios[index] + ratioDelta;
       let newRatio2 = initialRowRatios[index + 1] - ratioDelta;
 
-      // Calculate minimum ratio based on MIN_PANEL_SIZE_PX
       const minRatio = (MIN_PANEL_SIZE_PX / contentHeight) * totalRatios;
-
-      // Enforce minimum size constraints and ensure ratios stay positive
       if (newRatio1 < minRatio) {
         newRatio1 = minRatio;
         newRatio2 = initialRowRatios[index] + initialRowRatios[index + 1] - minRatio;
@@ -340,11 +333,10 @@ export class IframeGrid extends LitElement {
         newRatio1 = initialRowRatios[index] + initialRowRatios[index + 1] - minRatio;
       }
 
-      // Update working ratios (non-reactive)
       this.workingRowRatios[index] = newRatio1;
       this.workingRowRatios[index + 1] = newRatio2;
 
-      // Directly update DOM style instead of triggering Lit re-render
+      // Direct DOM manipulation - no Lit re-render
       container.style.gridTemplateRows = this.buildGridTemplateRows(this.workingRowRatios);
     }
   }
@@ -373,70 +365,17 @@ export class IframeGrid extends LitElement {
       .join(' ');
   }
 
-  private handleMouseUp(_event: MouseEvent) {
-    if (!this.dragState || !this.dragState.active) {
-      return;
-    }
+  private handlePointerUp(event: PointerEvent) {
+    if (!this.dragState?.active) return;
+    if (event.pointerId !== this.dragState.pointerId) return;
 
-    // Commit working ratios to Lit state (triggers re-render to sync state)
+    // Commit final ratios to Lit state (single re-render to persist)
     this.grid = {
       ...this.grid,
       columnRatios: [...this.workingColumnRatios],
       rowRatios: [...this.workingRowRatios],
     };
 
-    // Dispatch drag-complete event with final ratios
-    this.dispatchEvent(
-      new CustomEvent('grid-drag-complete', {
-        bubbles: true,
-        composed: true,
-        detail: {
-          orientation: this.dragState.orientation,
-          index: this.dragState.index,
-          columnRatios: [...this.workingColumnRatios],
-          rowRatios: [...this.workingRowRatios],
-        },
-      })
-    );
-
-    // Clear drag state (removes listeners and visual feedback)
-    this.clearDragState();
-  }
-
-  removeMouseMoveListener() {
-    if (this.boundHandleMouseMove) {
-      document.removeEventListener('mousemove', this.boundHandleMouseMove);
-      this.boundHandleMouseMove = null;
-    }
-  }
-
-  removeMouseUpListener() {
-    if (this.boundHandleMouseUp) {
-      document.removeEventListener('mouseup', this.boundHandleMouseUp);
-      this.boundHandleMouseUp = null;
-    }
-  }
-
-  removeMouseLeaveListener() {
-    if (this.boundHandleMouseLeave) {
-      document.documentElement.removeEventListener('mouseleave', this.boundHandleMouseLeave);
-      this.boundHandleMouseLeave = null;
-    }
-  }
-
-  private handleMouseLeave(_event: MouseEvent) {
-    if (!this.dragState || !this.dragState.active) {
-      return;
-    }
-
-    // Commit working ratios to Lit state
-    this.grid = {
-      ...this.grid,
-      columnRatios: [...this.workingColumnRatios],
-      rowRatios: [...this.workingRowRatios],
-    };
-
-    // End the drag when mouse leaves the viewport, preserving current ratios
     this.dispatchEvent(
       new CustomEvent('grid-drag-complete', {
         bubbles: true,
@@ -451,6 +390,21 @@ export class IframeGrid extends LitElement {
     );
 
     this.clearDragState();
+  }
+
+  removePointerMoveListener() {
+    if (this.boundHandlePointerMove) {
+      document.removeEventListener('pointermove', this.boundHandlePointerMove);
+      this.boundHandlePointerMove = null;
+    }
+  }
+
+  removePointerUpListener() {
+    if (this.boundHandlePointerUp) {
+      document.removeEventListener('pointerup', this.boundHandlePointerUp);
+      document.removeEventListener('pointercancel', this.boundHandlePointerUp);
+      this.boundHandlePointerUp = null;
+    }
   }
 
   getDragState(): DragState | null {
@@ -463,10 +417,21 @@ export class IframeGrid extends LitElement {
       dividers?.forEach(divider => {
         (divider as GridDivider).setDragging(false);
       });
+
+      // Remove dragging classes from grid container
+      const container = this.shadowRoot?.querySelector('.grid-container') as HTMLElement;
+      if (container) {
+        container.classList.remove('dragging');
+        container.classList.remove('dragging-vertical');
+        container.classList.remove('dragging-horizontal');
+      }
+
+      // Reset global cursor and user-select
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     }
-    this.removeMouseMoveListener();
-    this.removeMouseUpListener();
-    this.removeMouseLeaveListener();
+    this.removePointerMoveListener();
+    this.removePointerUpListener();
     this.dragState = null;
   }
 
